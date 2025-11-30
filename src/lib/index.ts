@@ -26,6 +26,18 @@ export { default as VectorIndexConfig } from './components/settings/VectorIndexC
 
 // Services
 export { TaskService } from './services/TaskService';
+export type { TaskServiceOptions, TaskCompletionCallback } from './services/TaskService';
+
+// Utilities
+export { createApiClient } from './utils/api';
+export type {
+  ApiClient,
+  ClientConfig,
+  WebhookListResponse,
+  BatchListResponse,
+  CreateWebhookPayload,
+  UpdateNetworkPayload
+} from './utils/api';
 
 // Types
 export type {

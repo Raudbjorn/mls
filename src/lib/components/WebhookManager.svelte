@@ -136,7 +136,7 @@
                         <div><strong>Headers:</strong> {JSON.stringify(webhook.headers)}</div>
                     {/if}
                 </div>
-                <button class="delete-btn" on:click={() => deleteWebhook(webhook.id)} disabled={loading}>
+                <button class="delete-btn" onclick={() => deleteWebhook(webhook.id)} disabled={loading}>
                     Delete
                 </button>
             </div>
@@ -159,10 +159,10 @@
             <div class="events-grid">
                 {#each availableEvents as event}
                     <label class="checkbox-label">
-                        <input 
-                            type="checkbox" 
-                            checked={newEvents.includes(event)} 
-                            on:change={() => toggleEvent(event)}
+                        <input
+                            type="checkbox"
+                            checked={newEvents.includes(event)}
+                            onchange={() => toggleEvent(event)}
                         />
                         {event}
                     </label>
@@ -179,7 +179,7 @@
             ></textarea>
         </div>
 
-        <button on:click={createWebhook} disabled={loading || !newUrl}>
+        <button onclick={createWebhook} disabled={loading || !newUrl}>
             {loading ? 'Processing...' : 'Create Webhook'}
         </button>
     </div>

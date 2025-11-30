@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getContext } from 'svelte';
-    import type { TaskService } from '../services/TaskService.svelte.ts';
+    import type { TaskService } from '../services/TaskService';
 
     const taskService = getContext<TaskService>('taskService');
     
