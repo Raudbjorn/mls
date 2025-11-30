@@ -77,7 +77,7 @@ export class TaskService {
     // Fetch initial status immediately
     try {
       const task = await this.client.getTask(taskUid);
-      this.tasks.set(taskUid, task as MeiliTask);
+      this.tasks.set(taskUid, task as unknown as MeiliTask);
 
       // Start polling for this specific task if it's active
       if (["enqueued", "processing"].includes(task.status)) {
@@ -85,7 +85,7 @@ export class TaskService {
       } else {
         // Task already completed, record completion time and notify
         this.completedAt.set(taskUid, Date.now());
-        this.notifyCompletion(task as MeiliTask);
+        this.notifyCompletion(task as unknown as MeiliTask);
       }
     } catch (e) {
       console.error(`Failed to fetch initial task ${taskUid}`, e);
@@ -111,7 +111,7 @@ export class TaskService {
       try {
         const task = await this.client.getTask(taskUid);
         const previousStatus = this.tasks.get(taskUid)?.status;
-        this.tasks.set(taskUid, task as MeiliTask);
+        this.tasks.set(taskUid, task as unknown as MeiliTask);
 
         // Stop polling if task is complete
         if (!["enqueued", "processing"].includes(task.status)) {
@@ -120,7 +120,7 @@ export class TaskService {
 
           // Notify callbacks if status changed to completed/failed
           if (previousStatus !== task.status) {
-            this.notifyCompletion(task as MeiliTask);
+            this.notifyCompletion(task as unknown as MeiliTask);
           }
         }
 
