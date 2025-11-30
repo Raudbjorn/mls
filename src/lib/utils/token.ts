@@ -49,6 +49,17 @@ export interface JWTPayload {
 export async function generateTenantToken(
   options: TenantTokenOptions
 ): Promise<string> {
+  // Check for browser environment
+  if (typeof btoa === 'undefined') {
+    throw new MlsTokenError('btoa is not available. This function requires a browser environment or a polyfill.');
+  }
+  if (typeof atob === 'undefined') {
+    throw new MlsTokenError('atob is not available. This function requires a browser environment or a polyfill.');
+  }
+  if (typeof crypto === 'undefined' || typeof crypto.subtle === 'undefined') {
+    throw new MlsTokenError('crypto.subtle is not available. This function requires a browser environment with Web Crypto API support.');
+  }
+
   try {
     // Base64URL encode helper
     const base64UrlEncode = (str: string): string => {
@@ -118,6 +129,14 @@ export async function validateTenantToken(
   token: string,
   apiKey: string
 ): Promise<boolean> {
+  // Check for browser environment
+  if (typeof atob === 'undefined') {
+    throw new MlsTokenError('atob is not available. This function requires a browser environment or a polyfill.');
+  }
+  if (typeof crypto === 'undefined' || typeof crypto.subtle === 'undefined') {
+    throw new MlsTokenError('crypto.subtle is not available. This function requires a browser environment with Web Crypto API support.');
+  }
+
   try {
     const [encodedHeader, encodedPayload, encodedSignature] = token.split('.');
 
@@ -160,6 +179,11 @@ export async function validateTenantToken(
  * @returns Decoded token payload
  */
 export function decodeTenantToken(token: string): JWTPayload {
+  // Check for browser environment
+  if (typeof atob === 'undefined') {
+    throw new MlsTokenError('atob is not available. This function requires a browser environment or a polyfill.');
+  }
+
   try {
     const [, encodedPayload] = token.split('.');
     if (!encodedPayload) {

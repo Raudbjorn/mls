@@ -203,7 +203,9 @@ export class BatchService {
 
     for (const batch of this.createBatches(documentIds, batchSize)) {
       try {
-        const task = await index.deleteDocuments(batch);
+        // Convert to string array for the API
+        const stringBatch = batch.map(id => String(id));
+        const task = await index.deleteDocuments(stringBatch);
         result.tasks.push(task);
         result.successfulBatches++;
         successfulBatchIndices.push(batchIndex);

@@ -3,7 +3,7 @@
  * Provides enhanced type safety and additional convenience methods
  */
 
-import type { Index, SearchResponse, SearchParams, EnqueuedTask } from 'meilisearch';
+import type { Index, SearchResponse, SearchParams, EnqueuedTask, TypoTolerance, Faceting, PaginationSettings } from 'meilisearch';
 import type { BatchService } from './BatchService';
 import type { EnhancedTaskService } from './EnhancedTaskService';
 import { MlsTaskTimeoutError } from '../errors';
@@ -220,9 +220,9 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
     rankingRules?: string[];
     stopWords?: string[];
     synonyms?: Record<string, string[]>;
-    typoTolerance?: any;
-    faceting?: any;
-    pagination?: any;
+    typoTolerance?: TypoTolerance;
+    faceting?: Faceting;
+    pagination?: PaginationSettings;
   }): Promise<EnqueuedTask> {
     const mappedSettings: any = { ...settings };
 

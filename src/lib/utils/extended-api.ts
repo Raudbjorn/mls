@@ -38,6 +38,11 @@ export interface ExtendedApiClient {
   fetchDocuments(indexUid: string, ids: (string | number)[]): Promise<any[]>;
   editDocuments(indexUid: string, edits: DocumentEdit[]): Promise<{ taskUid: number }>;
 
+  // Localized Attributes
+  getLocalizedAttributes(indexUid: string): Promise<LocalizedAttribute[]>;
+  updateLocalizedAttributes(indexUid: string, localizedAttributes: LocalizedAttribute[]): Promise<{ taskUid: number }>;
+  resetLocalizedAttributes(indexUid: string): Promise<{ taskUid: number }>;
+
   // Experimental Features
   getExperimentalFeatures(): Promise<ExperimentalFeatures>;
   updateExperimentalFeatures(features: Partial<ExperimentalFeatures>): Promise<ExperimentalFeatures>;
@@ -149,8 +154,9 @@ export interface FacetSearchParams {
   q?: string;
 }
 
-// Note: For multiSearch and federatedSearch, consider using the MeiliSearch SDK's built-in methods
-// when available (e.g., client.multiSearch()). The implementations below are provided as fallbacks.
+// Note: The MeiliSearch SDK provides built-in client.multiSearch() method.
+// Consider using the SDK method when available for better type safety and support.
+// The implementations below are provided as fallbacks for advanced use cases.
 
 export interface FacetSearchResponse {
   facetHits: Array<{
@@ -168,6 +174,11 @@ export interface DocumentEdit {
     path: string;
     value?: any;
   }>;
+}
+
+export interface LocalizedAttribute {
+  attributePattern: string;
+  locales: string[];
 }
 
 export interface ExperimentalFeatures {
@@ -259,6 +270,7 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     },
 
     // System Management
+    // Note: Consider using client.createDump() from the MeiliSearch SDK when available
     async createDump() {
       try {
         return await httpClient.post('/dumps');
@@ -306,17 +318,18 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     },
 
     // Federation & Multi-search
-    async multiSearch<T = any>(params: MultiSearchParams) {
+    // Note: Consider using client.multiSearch() from the MeiliSearch SDK when available
+    async multiSearch<T = any>(params: MultiSearchParams): Promise<MultiSearchResponse<T>> {
       try {
-        return await httpClient.post<MultiSearchResponse<T>>('/multi-search', params);
+        return await httpClient.post('/multi-search', params);
       } catch (error) {
         handleApiError(error);
       }
     },
 
-    async federatedSearch<T = any>(params: FederatedSearchParams) {
+    async federatedSearch<T = any>(params: FederatedSearchParams): Promise<FederatedSearchResponse<T>> {
       try {
-        return await httpClient.post<FederatedSearchResponse<T>>('/multi-search', params);
+        return await httpClient.post('/multi-search', params);
       } catch (error) {
         handleApiError(error);
       }
@@ -350,6 +363,31 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     async editDocuments(indexUid: string, edits: DocumentEdit[]) {
       try {
         return await httpClient.post(`/indexes/${indexUid}/documents/edit`, { edits });
+      } catch (error) {
+        handleApiError(error);
+      }
+    },
+
+    // Localized Attributes
+    async getLocalizedAttributes(indexUid: string) {
+      try {
+        return await httpClient.get(`/indexes/${indexUid}/settings/localized-attributes`);
+      } catch (error) {
+        handleApiError(error);
+      }
+    },
+
+    async updateLocalizedAttributes(indexUid: string, localizedAttributes: LocalizedAttribute[]) {
+      try {
+        return await httpClient.put(`/indexes/${indexUid}/settings/localized-attributes`, localizedAttributes);
+      } catch (error) {
+        handleApiError(error);
+      }
+    },
+
+    async resetLocalizedAttributes(indexUid: string) {
+      try {
+        return await httpClient.delete(`/indexes/${indexUid}/settings/localized-attributes`);
       } catch (error) {
         handleApiError(error);
       }
