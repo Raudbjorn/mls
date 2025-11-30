@@ -358,6 +358,9 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     // Advanced Index Operations
     async getSimilarDocuments(indexUid: string, params: SimilarDocumentsParams) {
       try {
+        const index = client.index(indexUid);
+        // Check if SDK supports similar documents (not available in current SDK)
+        // This is an experimental feature not yet in the SDK
         return await httpClient.post(`/indexes/${indexUid}/similar`, params);
       } catch (error) {
         handleApiError(error);
@@ -366,6 +369,22 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async facetSearch(indexUid: string, params: FacetSearchParams) {
       try {
+        const index = client.index(indexUid);
+        // Check if SDK supports searchForFacetValues
+        if (typeof index.searchForFacetValues === 'function') {
+          const result = await index.searchForFacetValues({
+            facetName: params.facetName,
+            facetQuery: params.facetQuery,
+            filter: params.filter,
+            q: params.q
+          });
+          return {
+            facetHits: result.facetHits,
+            facetQuery: result.facetQuery || params.facetQuery,
+            processingTimeMs: 0 // SDK doesn't provide this
+          };
+        }
+        // Fallback to HTTP client
         return await httpClient.post(`/indexes/${indexUid}/facet-search`, params);
       } catch (error) {
         handleApiError(error);
@@ -374,6 +393,22 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async fetchDocuments(indexUid: string, ids: (string | number)[]) {
       try {
+        const index = client.index(indexUid);
+        // Check if SDK supports fetchDocuments (available as getDocuments with filter)
+        if (typeof index.getDocuments === 'function') {
+          // Use getDocuments to fetch specific documents
+          const results: any[] = [];
+          for (const id of ids) {
+            try {
+              const doc = await index.getDocument(String(id));
+              results.push(doc);
+            } catch (e) {
+              // Document not found, skip
+            }
+          }
+          return results;
+        }
+        // Fallback to HTTP client for batch fetch
         return await httpClient.post(`/indexes/${indexUid}/documents/fetch`, { ids });
       } catch (error) {
         handleApiError(error);
@@ -382,6 +417,8 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async editDocuments(indexUid: string, edits: DocumentEdit[]) {
       try {
+        // Document editing with JSON Patch is not available in SDK
+        // This is an experimental feature
         return await httpClient.post(`/indexes/${indexUid}/documents/edit`, { edits });
       } catch (error) {
         handleApiError(error);
