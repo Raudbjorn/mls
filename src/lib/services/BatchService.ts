@@ -44,11 +44,13 @@ export class BatchService {
   }
 
   /**
-   * Adds documents to an index in batches
+   * Generic batch processor to eliminate code duplication
+   * Used internally by add/update/delete methods
    */
-  async addDocumentsInBatches<T extends Record<string, any>>(
-    index: Index<T>,
-    documents: T[],
+  private async processBatches<T>(
+    index: Index,
+    items: T[],
+    operation: 'add' | 'update' | 'delete',
     options: BatchOptions = {}
   ): Promise<BatchResult> {
     const {
@@ -60,7 +62,7 @@ export class BatchService {
     } = options;
 
     const result: BatchResult = {
-      totalBatches: Math.ceil(documents.length / batchSize),
+      totalBatches: Math.ceil(items.length / batchSize),
       successfulBatches: 0,
       failedBatches: 0,
       tasks: [],
@@ -70,9 +72,26 @@ export class BatchService {
     let batchIndex = 0;
     const successfulBatchIndices: number[] = [];
 
-    for (const batch of this.createBatches(documents, batchSize)) {
+    for (const batch of this.createBatches(items, batchSize)) {
       try {
-        const task = await index.addDocuments(batch, { primaryKey });
+        let task: EnqueuedTask;
+
+        // Execute the appropriate operation based on type
+        switch (operation) {
+          case 'add':
+            task = await index.addDocuments(batch as any, { primaryKey });
+            break;
+          case 'update':
+            task = await index.updateDocuments(batch as any, { primaryKey });
+            break;
+          case 'delete':
+            // For delete, items are document IDs (strings/numbers)
+            task = await index.deleteDocuments(batch as any);
+            break;
+          default:
+            throw new Error(`Unknown operation: ${operation}`);
+        }
+
         result.tasks.push(task);
         result.successfulBatches++;
         successfulBatchIndices.push(batchIndex);
@@ -83,7 +102,10 @@ export class BatchService {
 
         // Wait for completion if requested
         if (waitForCompletion && this.taskService) {
-          await this.taskService.waitForTask(task.taskUid);
+          const completedTask = await this.taskService.waitForTask(task.taskUid);
+          if (completedTask.status === 'failed') {
+            throw new Error(completedTask.error?.message || 'Task failed');
+          }
         }
       } catch (error) {
         result.failedBatches++;
@@ -108,6 +130,17 @@ export class BatchService {
     }
 
     return result;
+  }
+
+  /**
+   * Adds documents to an index in batches
+   */
+  async addDocumentsInBatches<T extends Record<string, any>>(
+    index: Index<T>,
+    documents: T[],
+    options: BatchOptions = {}
+  ): Promise<BatchResult> {
+    return this.processBatches(index, documents, 'add', options);
   }
 
   /**
@@ -118,63 +151,7 @@ export class BatchService {
     documents: T[],
     options: BatchOptions = {}
   ): Promise<BatchResult> {
-    const {
-      batchSize = this.defaultBatchSize,
-      primaryKey,
-      waitForCompletion = false,
-      onBatchComplete,
-      onBatchError
-    } = options;
-
-    const result: BatchResult = {
-      totalBatches: Math.ceil(documents.length / batchSize),
-      successfulBatches: 0,
-      failedBatches: 0,
-      tasks: [],
-      errors: []
-    };
-
-    let batchIndex = 0;
-    const successfulBatchIndices: number[] = [];
-
-    for (const batch of this.createBatches(documents, batchSize)) {
-      try {
-        const task = await index.updateDocuments(batch, { primaryKey });
-        result.tasks.push(task);
-        result.successfulBatches++;
-        successfulBatchIndices.push(batchIndex);
-
-        if (onBatchComplete) {
-          onBatchComplete(batchIndex, task);
-        }
-
-        // Wait for completion if requested
-        if (waitForCompletion && this.taskService) {
-          await this.taskService.waitForTask(task.taskUid);
-        }
-      } catch (error) {
-        result.failedBatches++;
-        const err = error as Error;
-        result.errors.push({ batchIndex, error: err });
-
-        if (onBatchError) {
-          onBatchError(batchIndex, err);
-        }
-      }
-
-      batchIndex++;
-    }
-
-    if (result.failedBatches > 0) {
-      throw new MlsBatchError(
-        `${result.failedBatches} out of ${result.totalBatches} batches failed`,
-        result.errors.map(e => e.batchIndex),
-        successfulBatchIndices,
-        result.errors
-      );
-    }
-
-    return result;
+    return this.processBatches(index, documents, 'update', options);
   }
 
   /**
@@ -185,62 +162,7 @@ export class BatchService {
     documentIds: string[] | number[],
     options: Omit<BatchOptions, 'primaryKey'> = {}
   ): Promise<BatchResult> {
-    const {
-      batchSize = this.defaultBatchSize,
-      waitForCompletion = false,
-      onBatchComplete,
-      onBatchError
-    } = options;
-
-    const result: BatchResult = {
-      totalBatches: Math.ceil(documentIds.length / batchSize),
-      successfulBatches: 0,
-      failedBatches: 0,
-      tasks: [],
-      errors: []
-    };
-
-    let batchIndex = 0;
-    const successfulBatchIndices: number[] = [];
-
-    for (const batch of this.createBatches(documentIds, batchSize)) {
-      try {
-        const task = await index.deleteDocuments(batch as string[] | number[]);
-        result.tasks.push(task);
-        result.successfulBatches++;
-        successfulBatchIndices.push(batchIndex);
-
-        if (onBatchComplete) {
-          onBatchComplete(batchIndex, task);
-        }
-
-        // Wait for completion if requested
-        if (waitForCompletion && this.taskService) {
-          await this.taskService.waitForTask(task.taskUid);
-        }
-      } catch (error) {
-        result.failedBatches++;
-        const err = error as Error;
-        result.errors.push({ batchIndex, error: err });
-
-        if (onBatchError) {
-          onBatchError(batchIndex, err);
-        }
-      }
-
-      batchIndex++;
-    }
-
-    if (result.failedBatches > 0) {
-      throw new MlsBatchError(
-        `${result.failedBatches} out of ${result.totalBatches} batches failed`,
-        result.errors.map(e => e.batchIndex),
-        successfulBatchIndices,
-        result.errors
-      );
-    }
-
-    return result;
+    return this.processBatches(index, documentIds, 'delete', options);
   }
 
   /**
@@ -318,41 +240,44 @@ export class BatchService {
       }
 
       throw streamError;
-    }
+    } finally {
+      // Cleanup: Process remaining documents if any
+      if (batch.length > 0) {
+        try {
+          const task = operation === 'add'
+            ? await index.addDocuments(batch, { primaryKey })
+            : await index.updateDocuments(batch, { primaryKey });
 
-    // Process remaining documents
-    if (batch.length > 0) {
-      try {
-        const task = operation === 'add'
-          ? await index.addDocuments(batch, { primaryKey })
-          : await index.updateDocuments(batch, { primaryKey });
+          if (waitForCompletion && this.taskService) {
+            await this.taskService.waitForTask(task.taskUid);
+          }
 
-        if (waitForCompletion && this.taskService) {
-          await this.taskService.waitForTask(task.taskUid);
-        }
-
-        yield task;
-      } catch (error) {
-        errors.push({ batchIndex: batchCount, error: error as Error });
-        if (options.onBatchError) {
-          options.onBatchError(batchCount, error as Error);
+          yield task;
+        } catch (error) {
+          errors.push({ batchIndex: batchCount, error: error as Error });
+          if (options.onBatchError) {
+            options.onBatchError(batchCount, error as Error);
+          }
         }
       }
-    }
 
-    // If there were any errors, throw a batch error at the end
-    if (errors.length > 0) {
-      // Generate list of successful batch indices
-      const failedIndices = new Set(errors.map(e => e.batchIndex));
-      const successfulIndices = Array.from({ length: batchCount }, (_, i) => i)
-        .filter(i => !failedIndices.has(i));
+      // Clear references to free memory
+      batch = [];
 
-      throw new MlsBatchError(
-        `${errors.length} batch(es) failed during stream processing`,
-        errors.map(e => e.batchIndex),
-        successfulIndices,
-        errors
-      );
+      // If there were any errors, throw a batch error at the end
+      if (errors.length > 0) {
+        // Generate list of successful batch indices
+        const failedIndices = new Set(errors.map(e => e.batchIndex));
+        const successfulIndices = Array.from({ length: batchCount }, (_, i) => i)
+          .filter(i => !failedIndices.has(i));
+
+        throw new MlsBatchError(
+          `${errors.length} batch(es) failed during stream processing`,
+          errors.map(e => e.batchIndex),
+          successfulIndices,
+          errors
+        );
+      }
     }
   }
 

@@ -266,9 +266,14 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       }
     },
 
-    // System Management
+    // System Management - Using SDK methods where available
     async createDump() {
       try {
+        // Use SDK method if available
+        if (typeof client.createDump === 'function') {
+          return await client.createDump();
+        }
+        // Fallback to HTTP client for older SDK versions
         return await httpClient.post('/dumps');
       } catch (error) {
         handleApiError(error);
@@ -277,6 +282,11 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async createSnapshot() {
       try {
+        // Use SDK method if available
+        if (typeof client.createSnapshot === 'function') {
+          return await client.createSnapshot();
+        }
+        // Fallback to HTTP client for older SDK versions
         return await httpClient.post('/snapshots');
       } catch (error) {
         handleApiError(error);
@@ -314,9 +324,14 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       throw new MlsApiError('streamLogs is not yet implemented.');
     },
 
-    // Federation & Multi-search
+    // Federation & Multi-search - Using SDK methods
     async multiSearch<T = any>(params: MultiSearchParams) {
       try {
+        // Use SDK method which is available in recent versions
+        if (typeof client.multiSearch === 'function') {
+          return await client.multiSearch(params);
+        }
+        // Fallback for older SDK versions
         return await httpClient.post<MultiSearchResponse<T>>('/multi-search', params);
       } catch (error) {
         handleApiError(error);
@@ -325,6 +340,15 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async federatedSearch<T = any>(params: FederatedSearchParams) {
       try {
+        // Check if SDK supports federated multi-search
+        if (typeof (client as any).federatedMultiSearch === 'function') {
+          return await (client as any).federatedMultiSearch(params);
+        }
+        // The SDK's multiSearch can handle federation with the federation parameter
+        if (typeof client.multiSearch === 'function' && params.federation) {
+          return await client.multiSearch(params as any);
+        }
+        // Fallback to HTTP client
         return await httpClient.post<FederatedSearchResponse<T>>('/multi-search', params);
       } catch (error) {
         handleApiError(error);
@@ -384,9 +408,14 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       }
     },
 
-    // Experimental Features
+    // Experimental Features - Using SDK methods
     async getExperimentalFeatures() {
       try {
+        // Use SDK method which is available
+        if (typeof client.getExperimentalFeatures === 'function') {
+          return await client.getExperimentalFeatures();
+        }
+        // Fallback for older SDK versions
         return await httpClient.get('/experimental-features');
       } catch (error) {
         handleApiError(error);
@@ -395,6 +424,11 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async updateExperimentalFeatures(features: Partial<ExperimentalFeatures>) {
       try {
+        // Use SDK method which is available
+        if (typeof client.updateExperimentalFeatures === 'function') {
+          return await client.updateExperimentalFeatures(features);
+        }
+        // Fallback for older SDK versions
         return await httpClient.patch('/experimental-features', features);
       } catch (error) {
         handleApiError(error);
