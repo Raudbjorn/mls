@@ -98,5 +98,5 @@ export type {
   FacetSearchParams,
   FacetSearchResponse,
   DocumentEdit,
-  ExperimentalFeatures
+  ExperimentalFeatures as ExperimentalFeaturesConfig
 } from './utils/extended-api';

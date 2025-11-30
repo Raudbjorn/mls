@@ -2,16 +2,12 @@
   import { onMount, getContext } from 'svelte';
   import type { MeiliContext } from '../../types/meilisearch';
   import type { Index } from 'meilisearch';
+  import type { LocalizedAttribute } from '../../utils/extended-api';
 
   export let indexUid: string;
 
   const { client } = getContext<MeiliContext>('meili');
-  const index = client.index(indexUid);
-
-  interface LocalizedAttribute {
-    attributePattern: string;
-    locales: string[];
-  }
+  const index = client.index(indexUid) as any;
 
   let localizedAttributes = $state<LocalizedAttribute[]>([]);
   let loading = $state(false);
@@ -30,9 +26,7 @@
     loading = true;
     error = null;
     try {
-      const settings = await (index as any).httpRequest.get(
-        `/indexes/${indexUid}/settings/localized-attributes`
-      );
+      const settings = await index.getLocalizedAttributes();
       localizedAttributes = settings || [];
     } catch (e: any) {
       error = e.message;
@@ -45,10 +39,7 @@
     loading = true;
     error = null;
     try {
-      await (index as any).httpRequest.put(
-        `/indexes/${indexUid}/settings/localized-attributes`,
-        localizedAttributes
-      );
+      await index.updateLocalizedAttributes(localizedAttributes);
       await fetchLocalizedAttributes();
     } catch (e: any) {
       error = e.message;
@@ -68,8 +59,8 @@
     }
   }
 
-  function removeLocalizedAttribute(index: number) {
-    localizedAttributes = localizedAttributes.filter((_, i) => i !== index);
+  function removeLocalizedAttribute(attrIndex: number) {
+    localizedAttributes = localizedAttributes.filter((_, i) => i !== attrIndex);
   }
 
   function toggleLocale(locale: string) {

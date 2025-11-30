@@ -54,7 +54,7 @@
     });
 
     function formatDuration(ms: number) {
-        if (!ms) return '-';
+        if (ms === null || ms === undefined) return '-';
         return `${(ms / 1000).toFixed(2)}s`;
     }
 </script>

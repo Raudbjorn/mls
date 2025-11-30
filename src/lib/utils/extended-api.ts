@@ -14,7 +14,10 @@ export interface ExtendedApiClient {
   getChatWorkspaces(): Promise<ChatWorkspaceList>;
   getChatWorkspace(uid: string): Promise<ChatWorkspace>;
   getChatWorkspaceSettings(uid: string): Promise<ChatWorkspaceSettings>;
-  updateChatWorkspaceSettings(uid: string, settings: ChatWorkspaceSettings): Promise<ChatWorkspaceSettings>;
+  updateChatWorkspaceSettings(
+    uid: string,
+    settings: ChatWorkspaceSettings
+  ): Promise<ChatWorkspaceSettings>;
   deleteChatWorkspace(uid: string): Promise<void>;
   chatCompletion(uid: string, messages: ChatMessage[]): Promise<ChatCompletionResponse>;
 
@@ -40,12 +43,17 @@ export interface ExtendedApiClient {
 
   // Localized Attributes
   getLocalizedAttributes(indexUid: string): Promise<LocalizedAttribute[]>;
-  updateLocalizedAttributes(indexUid: string, localizedAttributes: LocalizedAttribute[]): Promise<{ taskUid: number }>;
+  updateLocalizedAttributes(
+    indexUid: string,
+    localizedAttributes: LocalizedAttribute[]
+  ): Promise<{ taskUid: number }>;
   resetLocalizedAttributes(indexUid: string): Promise<{ taskUid: number }>;
 
   // Experimental Features
   getExperimentalFeatures(): Promise<ExperimentalFeatures>;
-  updateExperimentalFeatures(features: Partial<ExperimentalFeatures>): Promise<ExperimentalFeatures>;
+  updateExperimentalFeatures(
+    features: Partial<ExperimentalFeatures>
+  ): Promise<ExperimentalFeatures>;
 }
 
 // Type definitions
@@ -125,12 +133,14 @@ export interface FederatedSearchParams extends MultiSearchParams {
     limit?: number;
     offset?: number;
   };
-  queries: Array<MultiSearchParams['queries'][0] & {
-    federationOptions?: {
-      remote?: string;
-      weight?: number;
-    };
-  }>;
+  queries: Array<
+    MultiSearchParams['queries'][0] & {
+      federationOptions?: {
+        remote?: string;
+        weight?: number;
+      };
+    }
+  >;
 }
 
 export interface FederatedSearchResponse<T> extends MultiSearchResponse<T> {
@@ -307,14 +317,22 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     async getErrorLogs() {
       try {
         const response = await httpClient.post('/logs/stderr');
-        return response.split('\n');
+        if (typeof response === 'string') {
+          return response.split('\n');
+        }
+        // If response is not a string, try to convert it or return as is if it's already an array
+        if (Array.isArray(response)) {
+          return response.map(String);
+        }
+        return [String(response)];
       } catch (error) {
         handleApiError(error);
+        return []; // Unreachable but satisfies TS
       }
     },
 
-    streamLogs(callback: (log: string) => void) {
-      throw new MlsApiError('streamLogs is not yet implemented');
+    async streamLogs(callback: (log: string) => void): Promise<() => void> {
+      return Promise.reject(new MlsApiError('streamLogs is not yet implemented'));
     },
 
     // Federation & Multi-search
@@ -327,7 +345,9 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       }
     },
 
-    async federatedSearch<T = any>(params: FederatedSearchParams): Promise<FederatedSearchResponse<T>> {
+    async federatedSearch<T = any>(
+      params: FederatedSearchParams
+    ): Promise<FederatedSearchResponse<T>> {
       try {
         return await httpClient.post('/multi-search', params);
       } catch (error) {
@@ -379,7 +399,10 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async updateLocalizedAttributes(indexUid: string, localizedAttributes: LocalizedAttribute[]) {
       try {
-        return await httpClient.put(`/indexes/${indexUid}/settings/localized-attributes`, localizedAttributes);
+        return await httpClient.put(
+          `/indexes/${indexUid}/settings/localized-attributes`,
+          localizedAttributes
+        );
       } catch (error) {
         handleApiError(error);
       }
@@ -408,6 +431,6 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       } catch (error) {
         handleApiError(error);
       }
-    }
+    },
   };
 }

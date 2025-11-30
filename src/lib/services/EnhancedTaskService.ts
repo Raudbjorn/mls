@@ -20,7 +20,7 @@ export class EnhancedTaskService {
   private client: MeiliSearch;
   private defaultWaitOptions: WaitOptions = {
     timeOutMs: 5000,
-    intervalMs: 50
+    intervalMs: 50,
   };
 
   constructor(client: MeiliSearch, defaultWaitOptions?: WaitOptions) {
@@ -52,9 +52,10 @@ export class EnhancedTaskService {
     taskUidOrEnqueuedTask: number | EnqueuedTask,
     options?: WaitOptions
   ): Promise<Task> {
-    const taskUid = typeof taskUidOrEnqueuedTask === 'number'
-      ? taskUidOrEnqueuedTask
-      : taskUidOrEnqueuedTask.taskUid;
+    const taskUid =
+      typeof taskUidOrEnqueuedTask === 'number'
+        ? taskUidOrEnqueuedTask
+        : taskUidOrEnqueuedTask.taskUid;
 
     const { timeOutMs, intervalMs } = { ...this.defaultWaitOptions, ...options };
     const startTime = Date.now();
@@ -82,30 +83,46 @@ export class EnhancedTaskService {
   /**
    * Waits for multiple tasks to complete
    * Returns results as they complete (not in order)
+   * Failed tasks are yielded with a special status to allow caller to handle failures
    */
   async *waitForTasksIter(
     taskUidsOrEnqueuedTasks: Iterable<number | EnqueuedTask>,
     options?: WaitOptions
-  ): AsyncGenerator<Task, void, undefined> {
-    const taskPromises = Array.from(taskUidsOrEnqueuedTasks).map(task =>
+  ): AsyncGenerator<Task | { error: Error; taskUid: number }, void, undefined> {
+    const taskPromises = Array.from(taskUidsOrEnqueuedTasks).map((task) =>
       this.waitForTask(task, options)
     );
 
-    // Create a set of wrapper promises that remove themselves when resolved
-    const pending = new Set<Promise<{ index: number, result: Task }>>();
+    // Create a set of wrapper promises that never reject
+    const pending = new Set<
+      Promise<{ index: number; ok: boolean; result?: Task; error?: Error; taskUid?: number }>
+    >();
 
     taskPromises.forEach((p, i) => {
-      // Create a wrapper promise that removes itself from the set when resolved
-      const wrapper = p.then(result => {
-        pending.delete(wrapper);
-        return { index: i, result };
-      });
+      const taskInfo = Array.from(taskUidsOrEnqueuedTasks)[i];
+      const taskUid = typeof taskInfo === 'number' ? taskInfo : taskInfo.taskUid;
+
+      // Wrapper that catches errors and returns them as values
+      const wrapper = p
+        .then((result) => {
+          pending.delete(wrapper);
+          return { index: i, ok: true, result };
+        })
+        .catch((error) => {
+          pending.delete(wrapper);
+          return { index: i, ok: false, error, taskUid };
+        });
       pending.add(wrapper);
     });
 
     while (pending.size > 0) {
-      const { result } = await Promise.race(pending);
-      yield result;
+      const outcome = await Promise.race(pending);
+      if (outcome.ok && outcome.result) {
+        yield outcome.result;
+      } else if (!outcome.ok && outcome.error) {
+        // Yield error information so caller can handle it
+        yield { error: outcome.error, taskUid: outcome.taskUid! };
+      }
     }
   }
 
@@ -118,8 +135,15 @@ export class EnhancedTaskService {
   ): Promise<Task[]> {
     const tasks: Task[] = [];
 
-    for await (const task of this.waitForTasksIter(taskUidsOrEnqueuedTasks, options)) {
-      tasks.push(task);
+    for await (const result of this.waitForTasksIter(taskUidsOrEnqueuedTasks, options)) {
+      if ('error' in result) {
+        // Handle error result - you could log, throw, or skip
+        console.error(`Task ${(result as any).taskUid} failed:`, result.error);
+        // Optionally throw the error to stop processing
+        // throw result.error;
+      } else {
+        tasks.push(result);
+      }
     }
 
     return tasks;
@@ -140,6 +164,13 @@ export class EnhancedTaskService {
     }
 
     // Fallback to manual implementation for older SDK versions
+    const httpRequest = (this.client as any).httpRequest;
+    if (!httpRequest || typeof httpRequest.post !== 'function') {
+      throw new Error(
+        'cancelTasks is not supported by the current MeiliSearch SDK version, and httpRequest is not available for fallback'
+      );
+    }
+
     const queryParams = new URLSearchParams();
 
     if (params?.uids) {
@@ -155,9 +186,11 @@ export class EnhancedTaskService {
       queryParams.set('indexUids', params.indexUids.join(','));
     }
 
-    return await (this.client as any).httpRequest.post(
-      `/tasks/cancel?${queryParams.toString()}`
-    );
+    try {
+      return await httpRequest.post(`/tasks/cancel?${queryParams.toString()}`);
+    } catch (error: any) {
+      throw new Error(`Failed to cancel tasks: ${error.message || error}`);
+    }
   }
 
   /**
@@ -175,6 +208,13 @@ export class EnhancedTaskService {
     }
 
     // Fallback to manual implementation for older SDK versions
+    const httpRequest = (this.client as any).httpRequest;
+    if (!httpRequest || typeof httpRequest.delete !== 'function') {
+      throw new Error(
+        'deleteTasks is not supported by the current MeiliSearch SDK version, and httpRequest is not available for fallback'
+      );
+    }
+
     const queryParams = new URLSearchParams();
 
     if (params?.uids) {
@@ -190,13 +230,21 @@ export class EnhancedTaskService {
       queryParams.set('indexUids', params.indexUids.join(','));
     }
 
-    return await (this.client as any).httpRequest.delete(
-      `/tasks?${queryParams.toString()}`
-    );
+    try {
+      return await httpRequest.delete(`/tasks?${queryParams.toString()}`);
+    } catch (error: any) {
+      throw new Error(`Failed to delete tasks: ${error.message || error}`);
+    }
   }
 
   /**
-   * Gets detailed task statistics
+   * Gets detailed task statistics.
+   *
+   * Note:
+   * - `totalTasks` reflects the total number of tasks reported by the server.
+   * - The per-status/type/index breakdown is computed from only the first
+   *   1000 tasks returned by `getTasks({ limit: 1000 })`, so it is an
+   *   approximate view of the overall distribution.
    */
   async getTaskStats(): Promise<{
     totalTasks: number;
@@ -210,7 +258,7 @@ export class EnhancedTaskService {
       totalTasks: tasks.total,
       statuses: {} as Record<string, number>,
       types: {} as Record<string, number>,
-      indexes: {} as Record<string, number>
+      indexes: {} as Record<string, number>,
     };
 
     for (const task of tasks.results) {
@@ -230,6 +278,6 @@ export class EnhancedTaskService {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

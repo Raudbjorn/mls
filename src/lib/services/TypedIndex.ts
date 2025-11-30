@@ -3,7 +3,15 @@
  * Provides enhanced type safety and additional convenience methods
  */
 
-import type { Index, SearchResponse, SearchParams, EnqueuedTask, TypoTolerance, Faceting, PaginationSettings } from 'meilisearch';
+import type {
+  Index,
+  SearchResponse,
+  SearchParams,
+  EnqueuedTask,
+  TypoTolerance,
+  Faceting,
+  PaginationSettings,
+} from 'meilisearch';
 import type { BatchService } from './BatchService';
 import type { EnhancedTaskService } from './EnhancedTaskService';
 import { MlsTaskTimeoutError } from '../errors';
@@ -49,10 +57,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
   /**
    * Searches the index with type-safe results
    */
-  async search(
-    query: string,
-    params?: SearchParams
-  ): Promise<SearchResponse<T>> {
+  async search(query: string, params?: SearchParams): Promise<SearchResponse<T>> {
     return this.index.search(query, params);
   }
 
@@ -70,12 +75,24 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       q?: string;
     }
   ): Promise<Array<{ value: string; count: number }>> {
+    // Check if SDK has searchForFacetValues method
+    if (typeof (this.index as any).searchForFacetValues === 'function') {
+      const options = {
+        facetName: String(facetName),
+        facetQuery,
+        ...params,
+      };
+      const response = await (this.index as any).searchForFacetValues(options);
+      return response.facetHits || [];
+    }
+
+    // Fallback for older SDK versions
     const response = await (this.index as any).httpRequest.post(
       `/indexes/${this.index.uid}/facet-search`,
       {
         facetName: String(facetName),
         facetQuery,
-        ...params
+        ...params,
       }
     );
 
@@ -105,14 +122,14 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
   }> {
     const response = await this.index.getDocuments({
       ...params,
-      fields: params?.fields?.map(String)
+      fields: params?.fields?.map(String) as any,
     });
 
     return {
       results: response.results as T[],
-      total: response.total,
-      limit: response.limit,
-      offset: response.offset
+      total: response.total || 0,
+      limit: response.limit || 0,
+      offset: response.offset || 0,
     };
   }
 
@@ -131,21 +148,17 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
 
     // Use batch service if available and documents exceed batch size
     if (this.batchService && documents.length > (options?.batchSize || 1000)) {
-      const result = await this.batchService.addDocumentsInBatches(
-        this.index,
-        documents,
-        {
-          batchSize: options?.batchSize,
-          primaryKey: primaryKey ? String(primaryKey) : undefined,
-          waitForCompletion: options?.waitForCompletion
-        }
-      );
+      const result = await this.batchService.addDocumentsInBatches(this.index, documents, {
+        batchSize: options?.batchSize,
+        primaryKey: primaryKey ? String(primaryKey) : undefined,
+        waitForCompletion: options?.waitForCompletion,
+      });
       return result.tasks;
     }
 
     // Otherwise use regular add
     return this.index.addDocuments(documents, {
-      primaryKey: primaryKey ? String(primaryKey) : undefined
+      primaryKey: primaryKey ? String(primaryKey) : undefined,
     });
   }
 
@@ -170,7 +183,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
         {
           batchSize: options?.batchSize,
           primaryKey: primaryKey ? String(primaryKey) : undefined,
-          waitForCompletion: options?.waitForCompletion
+          waitForCompletion: options?.waitForCompletion,
         }
       );
       return result.tasks;
@@ -178,7 +191,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
 
     // Otherwise use regular update
     return this.index.updateDocuments(documents as any, {
-      primaryKey: primaryKey ? String(primaryKey) : undefined
+      primaryKey: primaryKey ? String(primaryKey) : undefined,
     });
   }
 
@@ -192,9 +205,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
   /**
    * Deletes multiple documents
    */
-  async deleteDocuments(
-    ids: string[] | number[] | { filter: string }
-  ): Promise<EnqueuedTask> {
+  async deleteDocuments(ids: string[] | number[] | { filter: string }): Promise<EnqueuedTask> {
     if (Array.isArray(ids)) {
       return this.index.deleteDocuments(ids.map(String));
     }
@@ -254,15 +265,10 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       embedder?: string;
     }
   ): Promise<SearchResponse<T>> {
-    const response = await (this.index as any).httpRequest.post(
-      `/indexes/${this.index.uid}/similar`,
-      {
-        id: String(id),
-        ...params
-      }
-    );
-
-    return response;
+    return await (this.index as any).httpRequest.post(`/indexes/${this.index.uid}/similar`, {
+      id: String(id),
+      ...params,
+    });
   }
 
   /**
@@ -278,24 +284,19 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       }>;
     }>
   ): Promise<EnqueuedTask> {
-    const response = await (this.index as any).httpRequest.post(
-      `/indexes/${this.index.uid}/documents/edit`,
-      { edits }
-    );
-
-    return response;
+    return await (this.index as any).httpRequest.post(`/indexes/${this.index.uid}/documents/edit`, {
+      edits,
+    });
   }
 
   /**
    * Fetches specific documents by their IDs
    */
   async fetchDocuments(ids: (string | number)[]): Promise<T[]> {
-    const response = await (this.index as any).httpRequest.post(
+    return await (this.index as any).httpRequest.post(
       `/indexes/${this.index.uid}/documents/fetch`,
       { ids: ids.map(String) }
     );
-
-    return response;
   }
 
   /**
@@ -310,7 +311,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
     return {
       numberOfDocuments: stats.numberOfDocuments,
       isIndexing: stats.isIndexing,
-      fieldDistribution: stats.fieldDistribution as Record<keyof T, number>
+      fieldDistribution: stats.fieldDistribution as Record<keyof T, number>,
     };
   }
 
@@ -335,7 +336,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       if (!['enqueued', 'processing'].includes(task.status)) {
         return task;
       }
-      await new Promise(resolve => setTimeout(resolve, interval));
+      await new Promise((resolve) => setTimeout(resolve, interval));
     }
 
     throw new MlsTaskTimeoutError(taskUid, timeOut);

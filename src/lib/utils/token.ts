@@ -46,40 +46,44 @@ export interface JWTPayload {
  * });
  * ```
  */
-export async function generateTenantToken(
-  options: TenantTokenOptions
-): Promise<string> {
+export async function generateTenantToken(options: TenantTokenOptions): Promise<string> {
   // Check for browser environment
   if (typeof btoa === 'undefined') {
-    throw new MlsTokenError('btoa is not available. This function requires a browser environment or a polyfill.');
+    throw new MlsTokenError(
+      'btoa is not available. This function requires a browser environment or a polyfill.'
+    );
   }
   if (typeof atob === 'undefined') {
-    throw new MlsTokenError('atob is not available. This function requires a browser environment or a polyfill.');
+    throw new MlsTokenError(
+      'atob is not available. This function requires a browser environment or a polyfill.'
+    );
   }
   if (typeof crypto === 'undefined' || typeof crypto.subtle === 'undefined') {
-    throw new MlsTokenError('crypto.subtle is not available. This function requires a browser environment with Web Crypto API support.');
+    throw new MlsTokenError(
+      'crypto.subtle is not available. This function requires a browser environment with Web Crypto API support.'
+    );
   }
 
   try {
     // Base64URL encode helper
     const base64UrlEncode = (str: string): string => {
-      return btoa(str)
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '');
+      const encoder = new TextEncoder();
+      const data = encoder.encode(str);
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(data)));
+      return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     };
 
     // Create header
     const header = {
       alg: 'HS256',
-      typ: 'JWT'
+      typ: 'JWT',
     };
 
     // Create payload
     const payload: JWTPayload = {
       apiKeyUid: options.apiKeyUid,
       searchRules: options.searchRules || ['*'],
-      iat: Math.floor(Date.now() / 1000)
+      iat: Math.floor(Date.now() / 1000),
     };
 
     if (options.expiresAt) {
@@ -107,9 +111,7 @@ export async function generateTenantToken(
 
     // Sign the message
     const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
-    const encodedSignature = base64UrlEncode(
-      String.fromCharCode(...new Uint8Array(signature))
-    );
+    const encodedSignature = base64UrlEncode(String.fromCharCode(...new Uint8Array(signature)));
 
     // Combine to create JWT
     return `${message}.${encodedSignature}`;
@@ -125,16 +127,17 @@ export async function generateTenantToken(
  * @param apiKey - API key used to sign the token
  * @returns True if valid, false otherwise
  */
-export async function validateTenantToken(
-  token: string,
-  apiKey: string
-): Promise<boolean> {
+export async function validateTenantToken(token: string, apiKey: string): Promise<boolean> {
   // Check for browser environment
   if (typeof atob === 'undefined') {
-    throw new MlsTokenError('atob is not available. This function requires a browser environment or a polyfill.');
+    throw new MlsTokenError(
+      'atob is not available. This function requires a browser environment or a polyfill.'
+    );
   }
   if (typeof crypto === 'undefined' || typeof crypto.subtle === 'undefined') {
-    throw new MlsTokenError('crypto.subtle is not available. This function requires a browser environment with Web Crypto API support.');
+    throw new MlsTokenError(
+      'crypto.subtle is not available. This function requires a browser environment with Web Crypto API support.'
+    );
   }
 
   try {
@@ -162,7 +165,7 @@ export async function validateTenantToken(
     // Decode the signature
     const signatureBytes = Uint8Array.from(
       atob(encodedSignature.replace(/-/g, '+').replace(/_/g, '/')),
-      c => c.charCodeAt(0)
+      (c) => c.charCodeAt(0)
     );
 
     // Verify the signature
@@ -181,7 +184,9 @@ export async function validateTenantToken(
 export function decodeTenantToken(token: string): JWTPayload {
   // Check for browser environment
   if (typeof atob === 'undefined') {
-    throw new MlsTokenError('atob is not available. This function requires a browser environment or a polyfill.');
+    throw new MlsTokenError(
+      'atob is not available. This function requires a browser environment or a polyfill.'
+    );
   }
 
   try {

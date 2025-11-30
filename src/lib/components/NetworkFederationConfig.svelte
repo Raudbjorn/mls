@@ -174,7 +174,7 @@
             <input type="password" bind:value={newRemoteKey} placeholder="Search API Key" />
         </div>
 
-        <button on:click={addRemote} disabled={loading || !newRemoteUrl || !newRemoteName}>
+        <button on:click={addRemote} disabled={loading || !newRemoteUrl || !newRemoteName || !newRemoteKey}>
             {loading ? 'Updating...' : 'Add Remote'}
         </button>
     </div>

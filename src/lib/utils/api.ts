@@ -73,6 +73,8 @@ export function createApiClient(client: MeiliSearch): ApiClient {
         return httpClient.get(path);
       } else if (methodLower === 'post') {
         return httpClient.post(path, body);
+      } else if (methodLower === 'put') {
+        return httpClient.put(path, body);
       } else if (methodLower === 'patch') {
         return httpClient.patch(path, body);
       } else if (methodLower === 'delete') {

@@ -255,7 +255,9 @@ export class BatchService {
     const {
       batchSize = this.defaultBatchSize,
       primaryKey,
-      waitForCompletion = false
+      waitForCompletion = false,
+      onBatchComplete,
+      onBatchError
     } = options;
 
     let batch: T[] = [];
@@ -264,6 +266,36 @@ export class BatchService {
       batch.push(document);
 
       if (batch.length >= batchSize) {
+        try {
+          const task = operation === 'add'
+            ? await index.addDocuments(batch, { primaryKey })
+            : await index.updateDocuments(batch, { primaryKey });
+
+          if (waitForCompletion && this.taskService) {
+            await this.taskService.waitForTask(task.taskUid);
+          }
+
+          // Call success callback after completion (if waiting) or immediately
+          if (onBatchComplete) {
+            onBatchComplete(batch, task);
+          }
+
+          yield task;
+          batch = [];
+        } catch (error) {
+          // Call error callback
+          if (onBatchError) {
+            onBatchError(batch, error as Error);
+          }
+          // Re-throw to let caller handle
+          throw error;
+        }
+      }
+    }
+
+    // Process remaining documents
+    if (batch.length > 0) {
+      try {
         const task = operation === 'add'
           ? await index.addDocuments(batch, { primaryKey })
           : await index.updateDocuments(batch, { primaryKey });
@@ -272,22 +304,20 @@ export class BatchService {
           await this.taskService.waitForTask(task.taskUid);
         }
 
+        // Call success callback
+        if (onBatchComplete) {
+          onBatchComplete(batch, task);
+        }
+
         yield task;
-        batch = [];
+      } catch (error) {
+        // Call error callback
+        if (onBatchError) {
+          onBatchError(batch, error as Error);
+        }
+        // Re-throw to let caller handle
+        throw error;
       }
-    }
-
-    // Process remaining documents
-    if (batch.length > 0) {
-      const task = operation === 'add'
-        ? await index.addDocuments(batch, { primaryKey })
-        : await index.updateDocuments(batch, { primaryKey });
-
-      if (waitForCompletion && this.taskService) {
-        await this.taskService.waitForTask(task.taskUid);
-      }
-
-      yield task;
     }
   }
 

@@ -9,17 +9,26 @@
     let query = $state('');
     let semanticRatio = $state(0.5);
     let rankingScoreThreshold = $state<number | null>(null);
-    let rankingScoreThresholdInput = $state('');
+    let rankingScoreThresholdInput = $state<number | null>(null);
     let embedder = $state('default');
     let filter = $state('');
     let facetsInput = $state('');
-    
+
     let results = $state<Record<string, any>[]>([]);
     let facetDistribution = $state<Record<string, Record<string, number>> | null>(null);
     let searchTime = $state(0);
     let isSearching = $state(false);
     let error = $state<string | null>(null);
     let timer: number | null = null;
+
+    // Cleanup timer on component unmount
+    $effect(() => {
+        return () => {
+            if (timer) {
+                clearTimeout(timer);
+            }
+        };
+    });
 
     async function search() {
         if (!indexUid) return;
@@ -28,13 +37,8 @@
         facetDistribution = null;
 
         // Convert string input to number or null
-        const threshold = rankingScoreThresholdInput ? parseFloat(rankingScoreThresholdInput) : null;
-        if (rankingScoreThresholdInput && isNaN(threshold!)) {
-            error = 'Invalid ranking score threshold value';
-            isSearching = false;
-            return;
-        }
-        rankingScoreThreshold = threshold;
+        // Use the input value directly since it's now a number
+        rankingScoreThreshold = rankingScoreThresholdInput;
 
         try {
             const searchParams: any = {
