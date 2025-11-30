@@ -1,0 +1,85 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+.svelte-kit/
+.vercel/
+.netlify/
+.turbo/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.test
+
+# IDE and editor files
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.sublime-*
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Cache
+.cache/
+.parcel-cache/
+.rollup.cache/
+.vite/
+
+# Production
+/public/build/
+
+# Svelte specific
+.svelte/
+
+# MeiliSearch specific (if using local instance for development)
+data.ms/
+meili_data/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Miscellaneous
+*.bak
+*.backup
+.history/
