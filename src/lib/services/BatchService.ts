@@ -176,7 +176,7 @@ export class BatchService {
    */
   async deleteDocumentsInBatches(
     index: Index,
-    documentIds: (string | number)[],
+    documentIds: string[] | number[],
     options: Omit<BatchOptions, 'primaryKey'> = {}
   ): Promise<BatchResult> {
     const {
@@ -198,7 +198,7 @@ export class BatchService {
 
     for (const batch of this.createBatches(documentIds, batchSize)) {
       try {
-        const task = await index.deleteDocuments(batch as any);
+        const task = await index.deleteDocuments(batch);
         result.tasks.push(task);
         result.successfulBatches++;
 

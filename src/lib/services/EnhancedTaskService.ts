@@ -92,22 +92,19 @@ export class EnhancedTaskService {
     );
 
     // Use Promise.race to yield results as they complete
-    const pending = new Set(taskPromises.map((p, i) =>
-      p.then(result => ({ index: i, result }))
-    ));
+    const pending = new Set<Promise<{ index: number, result: Task }>>();
+    taskPromises.forEach((p, i) => {
+      // Create a wrapper promise that removes itself from the set when resolved
+      const wrapper = p.then(result => {
+        pending.delete(wrapper);
+        return { index: i, result };
+      });
+      pending.add(wrapper);
+    });
 
     while (pending.size > 0) {
-      const { index, result } = await Promise.race(pending);
+      const { result } = await Promise.race(pending);
       yield result;
-
-      // Remove completed promise from pending set
-      for (const p of pending) {
-        const resolved = await Promise.race([p, Promise.resolve(null)]);
-        if (resolved && resolved.index === index) {
-          pending.delete(p);
-          break;
-        }
-      }
     }
   }
 
@@ -152,11 +149,10 @@ export class EnhancedTaskService {
       queryParams.set('indexUids', params.indexUids.join(','));
     }
 
-    const response = await (this.client as any).httpRequest.post(
-      `/tasks/cancel?${queryParams.toString()}`
-    );
+    return await (this.client as any).httpRequest.post(
+          `/tasks/cancel?${queryParams.toString()}`
+        );
 
-    return response;
   }
 
   /**
@@ -184,11 +180,10 @@ export class EnhancedTaskService {
       queryParams.set('indexUids', params.indexUids.join(','));
     }
 
-    const response = await (this.client as any).httpRequest.delete(
-      `/tasks?${queryParams.toString()}`
-    );
+    return await (this.client as any).httpRequest.delete(
+          `/tasks?${queryParams.toString()}`
+        );
 
-    return response;
   }
 
   /**

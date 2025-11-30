@@ -24,7 +24,7 @@ const token = await generateTenantToken({
 });
 
 // Validate a token
-const isValid = await validateTenantToken(token, apiKey);
+const isValid = await validateTenantToken(token, 'your-api-key');
 
 // Decode token payload
 const payload = decodeTenantToken(token);

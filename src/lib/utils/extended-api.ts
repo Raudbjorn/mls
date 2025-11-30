@@ -299,11 +299,8 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     },
 
     streamLogs(callback: (log: string) => void) {
-      // This would need WebSocket or SSE support
-      // Returning a stub for now
-      return Promise.resolve(() => {
-        console.log('Log streaming stopped');
-      });
+      // Not yet implemented: would require WebSocket or SSE support
+      throw new MlsApiError('streamLogs is not yet implemented.');
     },
 
     // Federation & Multi-search

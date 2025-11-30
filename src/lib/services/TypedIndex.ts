@@ -104,7 +104,12 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       fields: params?.fields?.map(String)
     });
 
-    return response as any;
+    return response as {
+      results: T[];
+      total: number;
+      limit: number;
+      offset: number;
+    };
   }
 
   /**
@@ -245,15 +250,14 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       embedder?: string;
     }
   ): Promise<SearchResponse<T>> {
-    const response = await (this.index as any).httpRequest.post(
-      `/indexes/${this.index.uid}/similar`,
-      {
-        id: String(id),
-        ...params
-      }
-    );
+    return await (this.index as any).httpRequest.post(
+          `/indexes/${this.index.uid}/similar`,
+          {
+            id: String(id),
+            ...params
+          }
+        );
 
-    return response;
   }
 
   /**
@@ -269,24 +273,22 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       }>;
     }>
   ): Promise<EnqueuedTask> {
-    const response = await (this.index as any).httpRequest.post(
-      `/indexes/${this.index.uid}/documents/edit`,
-      { edits }
-    );
+    return await (this.index as any).httpRequest.post(
+          `/indexes/${this.index.uid}/documents/edit`,
+          { edits }
+        );
 
-    return response;
   }
 
   /**
    * Fetches specific documents by their IDs
    */
   async fetchDocuments(ids: (string | number)[]): Promise<T[]> {
-    const response = await (this.index as any).httpRequest.post(
-      `/indexes/${this.index.uid}/documents/fetch`,
-      { ids: ids.map(String) }
-    );
+    return await (this.index as any).httpRequest.post(
+          `/indexes/${this.index.uid}/documents/fetch`,
+          { ids: ids.map(String) }
+        );
 
-    return response;
   }
 
   /**
@@ -297,7 +299,11 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
     isIndexing: boolean;
     fieldDistribution: Record<keyof T, number>;
   }> {
-    return this.index.getStats() as any;
+    return this.index.getStats() as {
+      numberOfDocuments: number;
+      isIndexing: boolean;
+      fieldDistribution: Record<keyof T, number>;
+    };
   }
 
   /**
@@ -324,7 +330,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       await new Promise(resolve => setTimeout(resolve, interval));
     }
 
-    throw new Error(`Task ${taskUid} timed out`);
+    throw new MlsTaskTimeoutError(taskUid, timeOut);
   }
 
   /**
