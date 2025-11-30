@@ -334,7 +334,7 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
         return [String(response)];
       } catch (error) {
         handleApiError(error);
-        return []; // Unreachable but satisfies TS
+        return []; // Unreachable as handleApiError always throws, but required for TypeScript
       }
     },
 
