@@ -69,6 +69,12 @@ describe('IndexListPanel', () => {
     it.todo('should support search/filter of indexes', () => {
       expect.fail('TODO: Test that SearchInput filters displayed indexes');
     });
+
+    it.todo('should show no results state when filter yields no matches', () => {
+      expect.fail(
+        'TODO: Test that empty filter results show \"No indexes match your search\" message'
+      );
+    });
   });
 
   describe('accessibility', () => {

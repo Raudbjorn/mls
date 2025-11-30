@@ -49,6 +49,10 @@ describe('ApiKeyTable', () => {
     it.todo('should copy key to clipboard', () => {
       expect.fail('TODO: Test that copy action copies full key value');
     });
+
+    it.todo('should show copy confirmation feedback', () => {
+      expect.fail('TODO: Test that successful copy shows confirmation (e.g., checkmark, toast)');
+    });
   });
 
   describe('CRUD operations', () => {

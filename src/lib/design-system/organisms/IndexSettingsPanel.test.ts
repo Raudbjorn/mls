@@ -63,6 +63,10 @@ describe('IndexSettingsPanel', () => {
     it.todo('should reset to original values on cancel', () => {
       expect.fail('TODO: Test that cancel reverts all changes to original state');
     });
+
+    it.todo('should warn before navigating away with unsaved changes', () => {
+      expect.fail('TODO: Test that attempting to leave with dirty state shows confirmation dialog');
+    });
   });
 
   describe('service integration', () => {

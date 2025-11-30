@@ -90,8 +90,8 @@ describe('LogViewer', () => {
       expect.fail('TODO: Test that container has role="log"');
     });
 
-    it.todo('should have aria-live for new entries', () => {
-      expect.fail('TODO: Test that new log entries are announced');
+    it.todo('should have aria-live="polite" for new entries', () => {
+      expect.fail('TODO: Test that new log entries are announced with aria-live="polite"');
     });
   });
 });
