@@ -25,7 +25,7 @@ export { default as TypoToleranceEditor } from './components/settings/TypoTolera
 export { default as VectorIndexConfig } from './components/settings/VectorIndexConfig.svelte';
 
 // Services
-export { TaskService } from './services/TaskService.svelte.ts';
+export { TaskService } from './services/TaskService';
 
 // Types
 export type {

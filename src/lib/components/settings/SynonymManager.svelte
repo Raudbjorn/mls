@@ -35,7 +35,7 @@
                         <span class="syn-tag">{syn}</span>
                     {/each}
                 </div>
-                <button onclick={() => removeTerm(term)} class="delete">Remove</button>
+                <button on:click={() => removeTerm(term)} class="delete">Remove</button>
             </div>
         {/each}
     </div>
@@ -51,7 +51,7 @@
             bind:value={newSynonymsInput} 
             placeholder="Synonyms (comma separated, e.g. 'iphone, android')"
         />
-        <button onclick={addSynonym}>Add</button>
+        <button on:click={addSynonym}>Add</button>
     </div>
 </div>
 

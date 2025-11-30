@@ -63,7 +63,7 @@
     {/if}
 
     <button 
-        onclick={swapIndexes} 
+        on:click={swapIndexes} 
         disabled={isSwapping || !hasAdminRights || !indexA || !indexB}
         class="swap-btn"
     >

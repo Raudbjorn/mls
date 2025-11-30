@@ -1,8 +1,10 @@
 <script lang="ts">
     import { onMount, onDestroy, getContext } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
+    import { createApiClient } from '../utils/api';
 
     const { client } = getContext<MeiliContext>('meili');
+    const api = createApiClient(client);
 
     let batches = $state<any[]>([]);
     let loading = $state(false);
@@ -11,9 +13,7 @@
 
     async function fetchBatches() {
         try {
-            // Endpoint: GET /batches
-            // Note: This is likely an experimental endpoint for debugging.
-            const response = await (client as any).httpRequest.get('/batches');
+            const response = await api.getBatches();
             batches = response.results || [];
             error = null;
         } catch (e: any) {
@@ -65,7 +65,7 @@
             {#if loading && !batches.length}
                 <span>Loading...</span>
             {/if}
-            <button onclick={pollInterval ? stopPolling : startPolling}>
+            <button on:click={pollInterval ? stopPolling : startPolling}>
                 {pollInterval ? 'Pause' : 'Resume'}
             </button>
         </div>

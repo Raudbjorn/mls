@@ -1,7 +1,7 @@
 <script lang="ts">
     import { setContext } from 'svelte';
     import { MeiliSearch } from 'meilisearch';
-    import { TaskService } from '../services/TaskService.svelte.ts';
+    import { TaskService } from '../services/TaskService';
     import type { MeiliContext } from '../types/meilisearch';
 
     let { host, apiKey, children } = $props();

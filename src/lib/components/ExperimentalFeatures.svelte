@@ -60,7 +60,7 @@
                         <input 
                             type="checkbox" 
                             checked={enabled} 
-                            onchange={() => toggleFeature(feature, enabled)}
+                            on:change={() => toggleFeature(feature, enabled)}
                         />
                         <span class="slider round"></span>
                     </label>

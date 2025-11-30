@@ -87,7 +87,7 @@
 
             <div class="actions">
                 <button 
-                    onclick={saveSettings} 
+                    on:click={saveSettings} 
                     disabled={isSaving || !hasAdminRights}
                     class="save-btn"
                 >

@@ -61,7 +61,7 @@
                         </div>
                     {/if}
                 </div>
-                <button onclick={() => removeEmbedder(name)} class="delete">Remove</button>
+                <button on:click={() => removeEmbedder(name)} class="delete">Remove</button>
             </div>
         {/each}
     </div>
@@ -118,7 +118,7 @@
             <p class="hint-small">Liquid template to format document for embedding.</p>
         </div>
 
-        <button onclick={addEmbedder} disabled={!newEmbedderName}>Add Embedder</button>
+        <button on:click={addEmbedder} disabled={!newEmbedderName}>Add Embedder</button>
     </div>
 </div>
 

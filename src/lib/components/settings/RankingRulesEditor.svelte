@@ -46,9 +46,9 @@
             <li class="rule-item">
                 <span class="rule-name">{rule}</span>
                 <div class="actions">
-                    <button onclick={() => moveRule(i, 'up')} disabled={i === 0}>↑</button>
-                    <button onclick={() => moveRule(i, 'down')} disabled={i === rules.length - 1}>↓</button>
-                    <button onclick={() => removeRule(i)} class="delete">×</button>
+                    <button on:click={() => moveRule(i, 'up')} disabled={i === 0}>↑</button>
+                    <button on:click={() => moveRule(i, 'down')} disabled={i === rules.length - 1}>↓</button>
+                    <button on:click={() => removeRule(i)} class="delete">×</button>
                 </div>
             </li>
         {/each}
@@ -60,7 +60,7 @@
             bind:value={newRule} 
             placeholder="attribute:asc or attribute:desc"
         />
-        <button onclick={addRule}>Add Rule</button>
+        <button on:click={addRule}>Add Rule</button>
     </div>
 </div>
 

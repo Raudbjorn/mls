@@ -33,7 +33,7 @@
   },
   "peerDependencies": {
     "svelte": "^5.0.0",
-    "meilisearch": "^0.35.0 || ^0.36.0 || ^0.37.0"
+    "meilisearch": "^0.35.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^3.0.0",

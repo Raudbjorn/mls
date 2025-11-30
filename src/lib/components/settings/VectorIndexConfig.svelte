@@ -50,7 +50,7 @@
             <input 
                 type="number" 
                 bind:value={hnswConfig.m} 
-                onchange={updateConfig}
+                on:change={updateConfig}
                 min="4" 
                 max="100"
             />
@@ -64,7 +64,7 @@
             <input 
                 type="number" 
                 bind:value={hnswConfig.efConstruction} 
-                onchange={updateConfig}
+                on:change={updateConfig}
                 min="10"
             />
             <p class="hint-small">Higher = better quality, slower indexing. Default: 200</p>

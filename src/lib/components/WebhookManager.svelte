@@ -1,8 +1,10 @@
 <script lang="ts">
     import { onMount, getContext } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
+    import { createApiClient } from '../utils/api';
 
     const { client } = getContext<MeiliContext>('meili');
+    const api = createApiClient(client);
 
     let webhooks = $state<any[]>([]);
     let loading = $state(false);
@@ -33,9 +35,7 @@
         loading = true;
         error = null;
         try {
-            // Using httpRequest as specific webhook methods might vary by SDK version
-            // Endpoint: GET /webhooks
-            const response = await (client as any).httpRequest.get('/webhooks');
+            const response = await api.getWebhooks();
             webhooks = response.results || [];
         } catch (e: any) {
             error = e.message;
@@ -71,8 +71,7 @@
                 headers: parsedHeaders
             };
 
-            // Endpoint: POST /webhooks
-            await (client as any).httpRequest.post('/webhooks', payload);
+            await api.createWebhook(payload);
             
             // Reset form
             newUrl = '';
@@ -92,8 +91,7 @@
         loading = true;
         error = null;
         try {
-            // Endpoint: DELETE /webhooks/{id}
-            await (client as any).httpRequest.delete(`/webhooks/${id}`);
+            await api.deleteWebhook(id);
             await fetchWebhooks();
         } catch (e: any) {
             error = e.message;
@@ -136,7 +134,7 @@
                         <div><strong>Headers:</strong> {JSON.stringify(webhook.headers)}</div>
                     {/if}
                 </div>
-                <button class="delete-btn" onclick={() => deleteWebhook(webhook.id)} disabled={loading}>
+                <button class="delete-btn" on:click={() => deleteWebhook(webhook.id)} disabled={loading}>
                     Delete
                 </button>
             </div>
@@ -162,7 +160,7 @@
                         <input 
                             type="checkbox" 
                             checked={newEvents.includes(event)} 
-                            onchange={() => toggleEvent(event)}
+                            on:change={() => toggleEvent(event)}
                         />
                         {event}
                     </label>
@@ -179,7 +177,7 @@
             ></textarea>
         </div>
 
-        <button onclick={createWebhook} disabled={loading || !newUrl}>
+        <button on:click={createWebhook} disabled={loading || !newUrl}>
             {loading ? 'Processing...' : 'Create Webhook'}
         </button>
     </div>

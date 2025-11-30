@@ -9,6 +9,7 @@
     let query = $state('');
     let semanticRatio = $state(0.5);
     let rankingScoreThreshold = $state<number | null>(null);
+    let rankingScoreThresholdInput = $state('');
     let embedder = $state('default');
     let filter = $state('');
     let facetsInput = $state('');
@@ -25,6 +26,15 @@
         isSearching = true;
         error = null;
         facetDistribution = null;
+
+        // Convert string input to number or null
+        const threshold = rankingScoreThresholdInput ? parseFloat(rankingScoreThresholdInput) : null;
+        if (rankingScoreThresholdInput && isNaN(threshold!)) {
+            error = 'Invalid ranking score threshold value';
+            isSearching = false;
+            return;
+        }
+        rankingScoreThreshold = threshold;
 
         try {
             const searchParams: any = {
@@ -69,14 +79,14 @@
                 type="text" 
                 bind:value={query} 
                 placeholder="Search query..." 
-                oninput={() => {
+                on:input={() => {
                     // Debounce search
                     if (timer) clearTimeout(timer);
                     timer = setTimeout(search, 300);
                 }}
                 class="search-input"
             />
-            <button onclick={search} disabled={isSearching}>
+            <button on:click={search} disabled={isSearching}>
                 {isSearching ? 'Searching...' : 'Search'}
             </button>
         </div>
@@ -99,12 +109,12 @@
 
             <div class="param-group">
                 <label>Ranking Score Threshold</label>
-                <input 
-                    type="number" 
-                    bind:value={rankingScoreThreshold} 
-                    min="0" 
-                    max="1" 
-                    step="0.1" 
+                <input
+                    type="number"
+                    bind:value={rankingScoreThresholdInput}
+                    min="0"
+                    max="1"
+                    step="0.1"
                     placeholder="Optional (0.0 - 1.0)"
                 />
             </div>

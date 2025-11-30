@@ -1,8 +1,10 @@
 <script lang="ts">
     import { onMount, getContext } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
+    import { createApiClient } from '../utils/api';
 
     const { client } = getContext<MeiliContext>('meili');
+    const api = createApiClient(client);
 
     let network = $state<any>(null);
     let loading = $state(false);
@@ -19,7 +21,7 @@
         try {
             // Endpoint: GET /network
             // Note: This is an experimental endpoint.
-            const response = await (client as any).httpRequest.get('/network');
+            const response = await api.getNetwork();
             network = response;
         } catch (e: any) {
             error = e.message;
@@ -45,9 +47,9 @@
                 throw new Error('Invalid URL format');
             }
 
-            // Validate API Key (basic check)
-            if (newRemoteKey.length < 8) {
-                throw new Error('API Key is too short (min 8 chars)');
+            // Validate API Key (improved check: min 32 chars, alphanumeric + - _)
+            if (newRemoteKey.length < 32 || !/^[A-Za-z0-9_-]+$/.test(newRemoteKey)) {
+                throw new Error('API Key must be at least 32 characters and contain only letters, numbers, "-", or "_"');
             }
 
             // Construct new remote object
@@ -68,7 +70,7 @@
                 remotes: [...currentRemotes, newRemote]
             };
 
-            await (client as any).httpRequest.patch('/network', payload);
+            await api.updateNetwork(payload);
             
             // Reset form
             newRemoteUrl = '';
@@ -95,7 +97,7 @@
                 remotes: updatedRemotes
             };
 
-            await (client as any).httpRequest.patch('/network', payload);
+            await api.updateNetwork(payload);
             await fetchNetworkConfig();
         } catch (e: any) {
             error = e.message;
@@ -141,7 +143,7 @@
                         <div class="remote-key">
                             Key: {remote.searchApiKey ? '••••••••' : 'None'}
                         </div>
-                        <button class="delete-btn" onclick={() => removeRemote(remote.name)} disabled={loading}>
+                        <button class="delete-btn" on:click={() => removeRemote(remote.name)} disabled={loading}>
                             Remove
                         </button>
                     </div>
@@ -171,7 +173,7 @@
             <input type="password" bind:value={newRemoteKey} placeholder="Search API Key" />
         </div>
 
-        <button onclick={addRemote} disabled={loading || !newRemoteUrl || !newRemoteName}>
+        <button on:click={addRemote} disabled={loading || !newRemoteUrl || !newRemoteName}>
             {loading ? 'Updating...' : 'Add Remote'}
         </button>
     </div>

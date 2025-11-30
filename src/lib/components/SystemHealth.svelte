@@ -1,8 +1,10 @@
 <script lang="ts">
     import { onMount, onDestroy, getContext } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
+    import { createApiClient } from '../utils/api';
 
     const { client, hasAdminRights } = getContext<MeiliContext>('meili');
+    const api = createApiClient(client);
 
     let loading = $state(true);
     let error = $state<string | null>(null);
@@ -65,7 +67,7 @@
             // We use fetch directly to handle text response if SDK doesn't support it easily
             // or use client.httpRequest if we can force text.
             // Let's use fetch for control over headers and response type.
-            const config = (client as any).config;
+            const config = api.getConfig();
             const response = await fetch(`${config.host}/metrics`, {
                 headers: {
                     'Authorization': `Bearer ${config.apiKey}`
@@ -141,7 +143,7 @@
         <div class="enable-metrics">
             <p>The Metrics feature is currently disabled.</p>
             <p class="info">Enabling this feature allows monitoring of system performance and resource usage.</p>
-            <button class="enable-btn" onclick={enableMetrics} disabled={!hasAdminRights}>
+            <button class="enable-btn" on:click={enableMetrics} disabled={!hasAdminRights}>
                 Enable Metrics
             </button>
             {#if !hasAdminRights}

@@ -1,8 +1,10 @@
 <script lang="ts">
     import { onMount, onDestroy, getContext } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
+    import { createApiClient } from '../utils/api';
 
     const { client } = getContext<MeiliContext>('meili');
+    const api = createApiClient(client);
 
     let logs = $state({ 
         lines: [] as string[], 
@@ -22,10 +24,7 @@
         streamController = new AbortController();
 
         try {
-            // Access config from the MeiliSearch client instance
-            // Note: client.config is internal in some versions, but usually accessible.
-            // If strictly typed, we might need to cast to any or ensure the type definition includes it.
-            const config = (client as any).config;
+            const config = api.getConfig();
             const host = config.host;
             const apiKey = config.apiKey;
 
@@ -133,11 +132,11 @@
         <div class="controls">
             <span class="status {logs.status}">{logs.status}</span>
             {#if logs.status === 'streaming' || logs.status === 'connecting'}
-                <button onclick={stopLogStream}>Stop</button>
+                <button on:click={stopLogStream}>Stop</button>
             {:else}
-                <button onclick={startLogStream}>Start</button>
+                <button on:click={startLogStream}>Start</button>
             {/if}
-            <button onclick={() => logs.lines = []}>Clear</button>
+            <button on:click={() => logs.lines = []}>Clear</button>
         </div>
     </div>
 
