@@ -163,7 +163,7 @@ export class BatchService {
     documentIds: string[] | number[],
     options: Omit<BatchOptions, 'primaryKey'> = {}
   ): Promise<BatchResult> {
-    return this.processBatches(index, documentIds, 'delete', options);
+    return this.processBatches(index, documentIds as any, 'delete', options);
   }
 
   /**

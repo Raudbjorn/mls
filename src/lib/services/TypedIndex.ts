@@ -107,7 +107,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
   }> {
     const response = await this.index.getDocuments({
       ...params,
-      fields: params?.fields?.map(String)
+      fields: params?.fields?.map(String) as any
     });
 
     return response as {
@@ -316,7 +316,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
     isIndexing: boolean;
     fieldDistribution: Record<keyof T, number>;
   }> {
-    return this.index.getStats() as {
+    return this.index.getStats() as any as {
       numberOfDocuments: number;
       isIndexing: boolean;
       fieldDistribution: Record<keyof T, number>;

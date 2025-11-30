@@ -110,15 +110,15 @@
 
         <div class="form-group">
             <label>Document Template (Optional)</label>
-            <textarea 
-                bind:value={documentTemplate} 
-                placeholder="A document titled '{{doc.title}}'..."
+            <textarea
+                bind:value={documentTemplate}
+                placeholder="A document titled '[doc.title]'..."
                 rows="3"
             ></textarea>
             <p class="hint-small">Liquid template to format document for embedding.</p>
         </div>
 
-        <button onclick={addEmbedder} disabled={!newEmbedderName}>Add Embedder</button>
+        <button on:click={addEmbedder} disabled={!newEmbedderName}>Add Embedder</button>
     </div>
 </div>
 

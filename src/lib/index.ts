@@ -6,7 +6,7 @@ export { default as MeiliTaskWatcher } from './components/MeiliTaskWatcher.svelt
 // Administrative components
 export { default as BackupManager } from './components/BackupManager.svelte';
 export { default as BatchMonitor } from './components/BatchMonitor.svelte';
-export { default as ExperimentalFeatures } from './components/ExperimentalFeatures.svelte';
+export { default as ExperimentalFeaturesComponent } from './components/ExperimentalFeatures.svelte';
 export { default as HybridSearchTester } from './components/HybridSearchTester.svelte';
 export { default as IndexSwapper } from './components/IndexSwapper.svelte';
 export { default as KeyManager } from './components/KeyManager.svelte';

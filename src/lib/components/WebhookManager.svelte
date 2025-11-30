@@ -172,14 +172,14 @@
 
         <div class="form-group">
             <label>Headers (JSON)</label>
-            <textarea 
-                bind:value={newHeaders} 
-                placeholder='{"Authorization": "Bearer token"}'
+            <textarea
+                bind:value={newHeaders}
+                placeholder="JSON object for headers"
                 rows="3"
-            ></textarea>
+            />
         </div>
 
-        <button onclick={createWebhook} disabled={loading || !newUrl}>
+        <button on:click={createWebhook} disabled={loading || !newUrl}>
             {loading ? 'Processing...' : 'Create Webhook'}
         </button>
     </div>

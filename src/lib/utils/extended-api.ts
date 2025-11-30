@@ -325,20 +325,21 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     },
 
     // Federation & Multi-search - Using SDK methods
-    async multiSearch<T = any>(params: MultiSearchParams) {
+    async multiSearch<T = any>(params: MultiSearchParams): Promise<MultiSearchResponse<T>> {
       try {
         // Use SDK method which is available in recent versions
         if (typeof client.multiSearch === 'function') {
           return await client.multiSearch(params);
         }
         // Fallback for older SDK versions
-        return await httpClient.post<MultiSearchResponse<T>>('/multi-search', params);
+        return await httpClient.post('/multi-search', params) as MultiSearchResponse<T>;
       } catch (error) {
         handleApiError(error);
+        throw error; // Re-throw to satisfy return type
       }
     },
 
-    async federatedSearch<T = any>(params: FederatedSearchParams) {
+    async federatedSearch<T = any>(params: FederatedSearchParams): Promise<FederatedSearchResponse<T>> {
       try {
         // Check if SDK supports federated multi-search
         if (typeof (client as any).federatedMultiSearch === 'function') {
@@ -349,9 +350,10 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
           return await client.multiSearch(params as any);
         }
         // Fallback to HTTP client
-        return await httpClient.post<FederatedSearchResponse<T>>('/multi-search', params);
+        return await httpClient.post('/multi-search', params) as FederatedSearchResponse<T>;
       } catch (error) {
         handleApiError(error);
+        throw error; // Re-throw to satisfy return type
       }
     },
 
@@ -449,8 +451,8 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     async getExperimentalFeatures() {
       try {
         // Use SDK method which is available
-        if (typeof client.getExperimentalFeatures === 'function') {
-          return await client.getExperimentalFeatures();
+        if (typeof (client as any).getExperimentalFeatures === 'function') {
+          return await (client as any).getExperimentalFeatures();
         }
         // Fallback for older SDK versions
         return await httpClient.get('/experimental-features');
@@ -462,8 +464,8 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     async updateExperimentalFeatures(features: Partial<ExperimentalFeatures>) {
       try {
         // Use SDK method which is available
-        if (typeof client.updateExperimentalFeatures === 'function') {
-          return await client.updateExperimentalFeatures(features);
+        if (typeof (client as any).updateExperimentalFeatures === 'function') {
+          return await (client as any).updateExperimentalFeatures(features);
         }
         // Fallback for older SDK versions
         return await httpClient.patch('/experimental-features', features);
