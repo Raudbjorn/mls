@@ -3,7 +3,15 @@
  * Provides enhanced type safety and additional convenience methods
  */
 
-import type { Index, SearchResponse, SearchParams, EnqueuedTask } from 'meilisearch';
+import type {
+  Index,
+  SearchResponse,
+  SearchParams,
+  EnqueuedTask,
+  TypoTolerance,
+  Faceting,
+  Pagination
+} from 'meilisearch';
 import type { BatchService } from './BatchService';
 import type { EnhancedTaskService } from './EnhancedTaskService';
 
@@ -66,14 +74,11 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       q?: string;
     }
   ): Promise<Array<{ value: string; count: number }>> {
-    const response = await (this.index as any).httpRequest.post(
-      `/indexes/${this.index.uid}/facet-search`,
-      {
-        facetName: String(facetName),
-        facetQuery,
-        ...params
-      }
-    );
+    const response = await this.index.searchForFacetValues({
+      facetName: String(facetName),
+      facetQuery,
+      ...params
+    });
 
     return response.facetHits;
   }
@@ -189,13 +194,14 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
    * Deletes multiple documents
    */
   async deleteDocuments(
-    ids: (string | number)[] | { filter: string }
+    ids: string[] | number[] | { filter: string }
   ): Promise<EnqueuedTask> {
     if (Array.isArray(ids)) {
-      return this.index.deleteDocuments(ids.map(String));
+      // SDK requires consistent types - all strings or all numbers
+      return this.index.deleteDocuments(ids as string[] | number[]);
     }
     // For filter-based deletion
-    return this.index.deleteDocuments(ids as any);
+    return this.index.deleteDocuments(ids);
   }
 
   /**
@@ -216,9 +222,9 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
     rankingRules?: string[];
     stopWords?: string[];
     synonyms?: Record<string, string[]>;
-    typoTolerance?: any;
-    faceting?: any;
-    pagination?: any;
+    typoTolerance?: TypoTolerance;
+    faceting?: Faceting;
+    pagination?: Pagination;
   }): Promise<EnqueuedTask> {
     const mappedSettings: any = { ...settings };
 

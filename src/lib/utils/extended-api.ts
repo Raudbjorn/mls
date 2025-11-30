@@ -252,7 +252,7 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async deleteChatWorkspace(uid: string) {
       try {
-        await httpClient.delete(`/chats/${uid}/settings`);
+        await httpClient.delete(`/chats/${uid}`);
       } catch (error) {
         handleApiError(error);
       }

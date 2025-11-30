@@ -68,12 +68,14 @@ export class BatchService {
     };
 
     let batchIndex = 0;
+    const successfulBatchIndices: number[] = [];
 
     for (const batch of this.createBatches(documents, batchSize)) {
       try {
         const task = await index.addDocuments(batch, { primaryKey });
         result.tasks.push(task);
         result.successfulBatches++;
+        successfulBatchIndices.push(batchIndex);
 
         if (onBatchComplete) {
           onBatchComplete(batchIndex, task);
@@ -100,7 +102,7 @@ export class BatchService {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
-        Array.from({ length: result.successfulBatches }, (_, i) => i),
+        successfulBatchIndices,
         result.errors
       );
     }
@@ -133,12 +135,14 @@ export class BatchService {
     };
 
     let batchIndex = 0;
+    const successfulBatchIndices: number[] = [];
 
     for (const batch of this.createBatches(documents, batchSize)) {
       try {
         const task = await index.updateDocuments(batch, { primaryKey });
         result.tasks.push(task);
         result.successfulBatches++;
+        successfulBatchIndices.push(batchIndex);
 
         if (onBatchComplete) {
           onBatchComplete(batchIndex, task);
@@ -165,7 +169,7 @@ export class BatchService {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
-        Array.from({ length: result.successfulBatches }, (_, i) => i),
+        successfulBatchIndices,
         result.errors
       );
     }
@@ -197,12 +201,14 @@ export class BatchService {
     };
 
     let batchIndex = 0;
+    const successfulBatchIndices: number[] = [];
 
     for (const batch of this.createBatches(documentIds, batchSize)) {
       try {
         const task = await index.deleteDocuments(batch);
         result.tasks.push(task);
         result.successfulBatches++;
+        successfulBatchIndices.push(batchIndex);
 
         if (onBatchComplete) {
           onBatchComplete(batchIndex, task);
@@ -229,7 +235,7 @@ export class BatchService {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
-        Array.from({ length: result.successfulBatches }, (_, i) => i),
+        successfulBatchIndices,
         result.errors
       );
     }
@@ -289,7 +295,7 @@ export class BatchService {
       const streamError = new MlsBatchError(
         `Document stream processing failed: ${(error as Error).message}`,
         errors.map(e => e.batchIndex),
-        Array.from({ length: batchCount - errors.length }, (_, i) => i),
+        [], // No successful batches tracked in stream error case
         errors,
         error
       );
@@ -336,10 +342,15 @@ export class BatchService {
 
     // If there were any errors, throw a batch error at the end
     if (errors.length > 0) {
+      // Generate list of successful batch indices
+      const failedIndices = new Set(errors.map(e => e.batchIndex));
+      const successfulIndices = Array.from({ length: batchCount }, (_, i) => i)
+        .filter(i => !failedIndices.has(i));
+
       throw new MlsBatchError(
         `${errors.length} batch(es) failed during stream processing`,
         errors.map(e => e.batchIndex),
-        Array.from({ length: batchCount - errors.length }, (_, i) => i),
+        successfulIndices,
         errors
       );
     }
