@@ -12,15 +12,15 @@ Generate JWT tokens for restricted access to MeiliSearch indexes:
 
 ```typescript
 import { MeiliSearch } from 'meilisearch';
-import { generateTenantToken } from 'mls';
+import { generateTenantToken, validateTenantToken, decodeTenantToken } from 'mls';
 
-const meiliClient = new MeiliSearch({
+const client = new MeiliSearch({
   host: 'https://your-meilisearch-instance.com',
   apiKey: 'your-api-key'
 });
 
 const token = await generateTenantToken({
-  client: meiliClient,
+  client,
   apiKeyUid: 'key-uid',
   searchRules: {
     'movies': { filter: 'category = "public"' },
@@ -29,8 +29,8 @@ const token = await generateTenantToken({
   expiresAt: new Date(Date.now() + 3600000) // 1 hour
 });
 
-// Validate a token
-const isValid = await validateTenantToken(token);
+// Validate a token (checks expiration)
+const isValid = validateTenantToken(token);
 
 // Decode token payload
 const payload = decodeTenantToken(token);

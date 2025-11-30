@@ -12,6 +12,7 @@ import type {
   Faceting,
   Pagination
 } from 'meilisearch';
+import { MlsTaskTimeoutError } from '../errors';
 import type { BatchService } from './BatchService';
 import type { EnhancedTaskService } from './EnhancedTaskService';
 
@@ -256,18 +257,27 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       embedder?: string;
     }
   ): Promise<SearchResponse<T>> {
-    return await (this.index as any).httpRequest.post(
-          `/indexes/${this.index.uid}/similar`,
-          {
-            id: String(id),
-            ...params
-          }
-        );
+    // Check if SDK has the searchSimilarDocuments method
+    if (typeof (this.index as any).searchSimilarDocuments === 'function') {
+      return await (this.index as any).searchSimilarDocuments({
+        id: String(id),
+        ...params
+      });
+    }
 
+    // Fallback to direct HTTP request for older SDK versions
+    return await (this.index as any).httpRequest.post(
+      `/indexes/${this.index.uid}/similar`,
+      {
+        id: String(id),
+        ...params
+      }
+    );
   }
 
   /**
    * Performs bulk document edits using JSON Patch operations
+   * Note: This is an experimental feature requiring editDocumentsByFunction to be enabled
    */
   async editDocuments(
     edits: Array<{
@@ -279,22 +289,23 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       }>;
     }>
   ): Promise<EnqueuedTask> {
+    // Direct HTTP request as SDK doesn't yet have this experimental method
     return await (this.index as any).httpRequest.post(
-          `/indexes/${this.index.uid}/documents/edit`,
-          { edits }
-        );
-
+      `/indexes/${this.index.uid}/documents/edit`,
+      { edits }
+    );
   }
 
   /**
    * Fetches specific documents by their IDs
+   * Note: This is an experimental endpoint not yet available in the SDK
    */
   async fetchDocuments(ids: (string | number)[]): Promise<T[]> {
+    // Direct HTTP request as SDK doesn't yet have this method
     return await (this.index as any).httpRequest.post(
-          `/indexes/${this.index.uid}/documents/fetch`,
-          { ids: ids.map(String) }
-        );
-
+      `/indexes/${this.index.uid}/documents/fetch`,
+      { ids: ids.map(String) }
+    );
   }
 
   /**
