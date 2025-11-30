@@ -356,6 +356,7 @@ Based on internal testing with a dataset of 100,000 documents:
 - **Node.js**: 18.0.0+
 - **Svelte**: v5.0.0+
 - **TypeScript**: v5.0.0+
+- **Browser Support**: Modern browsers with Web Crypto API support
 
 ## Support
 
