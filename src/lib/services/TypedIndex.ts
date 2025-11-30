@@ -6,6 +6,7 @@
 import type { Index, SearchResponse, SearchParams, EnqueuedTask } from 'meilisearch';
 import type { BatchService } from './BatchService';
 import type { EnhancedTaskService } from './EnhancedTaskService';
+import { MlsTaskTimeoutError } from '../errors';
 
 export interface TypedDocument {
   id?: string | number;
@@ -57,6 +58,9 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
 
   /**
    * Performs a typed facet search
+   *
+   * Note: Consider using the MeiliSearch SDK's index.searchForFacetValues() method
+   * if available in your SDK version, as it provides better type safety and support.
    */
   async searchFacets(
     facetName: keyof T,
@@ -104,7 +108,12 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       fields: params?.fields?.map(String)
     });
 
-    return response as any;
+    return {
+      results: response.results as T[],
+      total: response.total,
+      limit: response.limit,
+      offset: response.offset
+    };
   }
 
   /**
@@ -184,13 +193,13 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
    * Deletes multiple documents
    */
   async deleteDocuments(
-    ids: (string | number)[] | { filter: string }
+    ids: string[] | number[] | { filter: string }
   ): Promise<EnqueuedTask> {
     if (Array.isArray(ids)) {
       return this.index.deleteDocuments(ids.map(String));
     }
     // For filter-based deletion
-    return this.index.deleteDocuments(ids as any);
+    return this.index.deleteDocuments(ids);
   }
 
   /**
@@ -297,7 +306,12 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
     isIndexing: boolean;
     fieldDistribution: Record<keyof T, number>;
   }> {
-    return this.index.getStats() as any;
+    const stats = await this.index.getStats();
+    return {
+      numberOfDocuments: stats.numberOfDocuments,
+      isIndexing: stats.isIndexing,
+      fieldDistribution: stats.fieldDistribution as Record<keyof T, number>
+    };
   }
 
   /**
@@ -324,7 +338,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       await new Promise(resolve => setTimeout(resolve, interval));
     }
 
-    throw new Error(`Task ${taskUid} timed out`);
+    throw new MlsTaskTimeoutError(taskUid, timeOut);
   }
 
   /**

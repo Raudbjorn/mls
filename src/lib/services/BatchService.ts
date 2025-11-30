@@ -67,6 +67,7 @@ export class BatchService {
       errors: []
     };
 
+    const successfulBatchIndices: number[] = [];
     let batchIndex = 0;
 
     for (const batch of this.createBatches(documents, batchSize)) {
@@ -74,6 +75,7 @@ export class BatchService {
         const task = await index.addDocuments(batch, { primaryKey });
         result.tasks.push(task);
         result.successfulBatches++;
+        successfulBatchIndices.push(batchIndex);
 
         if (onBatchComplete) {
           onBatchComplete(batchIndex, task);
@@ -100,7 +102,7 @@ export class BatchService {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
-        Array.from({ length: result.successfulBatches }, (_, i) => i)
+        successfulBatchIndices
       );
     }
 
@@ -131,6 +133,7 @@ export class BatchService {
       errors: []
     };
 
+    const successfulBatchIndices: number[] = [];
     let batchIndex = 0;
 
     for (const batch of this.createBatches(documents, batchSize)) {
@@ -138,6 +141,7 @@ export class BatchService {
         const task = await index.updateDocuments(batch, { primaryKey });
         result.tasks.push(task);
         result.successfulBatches++;
+        successfulBatchIndices.push(batchIndex);
 
         if (onBatchComplete) {
           onBatchComplete(batchIndex, task);
@@ -164,7 +168,7 @@ export class BatchService {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
-        Array.from({ length: result.successfulBatches }, (_, i) => i)
+        successfulBatchIndices
       );
     }
 
@@ -176,7 +180,7 @@ export class BatchService {
    */
   async deleteDocumentsInBatches(
     index: Index,
-    documentIds: (string | number)[],
+    documentIds: string[] | number[],
     options: Omit<BatchOptions, 'primaryKey'> = {}
   ): Promise<BatchResult> {
     const {
@@ -194,13 +198,15 @@ export class BatchService {
       errors: []
     };
 
+    const successfulBatchIndices: number[] = [];
     let batchIndex = 0;
 
     for (const batch of this.createBatches(documentIds, batchSize)) {
       try {
-        const task = await index.deleteDocuments(batch as any);
+        const task = await index.deleteDocuments(batch);
         result.tasks.push(task);
         result.successfulBatches++;
+        successfulBatchIndices.push(batchIndex);
 
         if (onBatchComplete) {
           onBatchComplete(batchIndex, task);
@@ -227,7 +233,7 @@ export class BatchService {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
-        Array.from({ length: result.successfulBatches }, (_, i) => i)
+        successfulBatchIndices
       );
     }
 

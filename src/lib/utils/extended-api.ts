@@ -149,6 +149,9 @@ export interface FacetSearchParams {
   q?: string;
 }
 
+// Note: For multiSearch and federatedSearch, consider using the MeiliSearch SDK's built-in methods
+// when available (e.g., client.multiSearch()). The implementations below are provided as fallbacks.
+
 export interface FacetSearchResponse {
   facetHits: Array<{
     value: string;
@@ -241,7 +244,7 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async deleteChatWorkspace(uid: string) {
       try {
-        await httpClient.delete(`/chats/${uid}/settings`);
+        await httpClient.delete(`/chats/${uid}`);
       } catch (error) {
         handleApiError(error);
       }
@@ -299,11 +302,7 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     },
 
     streamLogs(callback: (log: string) => void) {
-      // This would need WebSocket or SSE support
-      // Returning a stub for now
-      return Promise.resolve(() => {
-        console.log('Log streaming stopped');
-      });
+      throw new MlsApiError('streamLogs is not yet implemented');
     },
 
     // Federation & Multi-search

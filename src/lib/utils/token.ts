@@ -18,8 +18,18 @@ export interface SearchRule {
   filter?: string;
 }
 
+export interface JWTPayload {
+  apiKeyUid: string;
+  searchRules: SearchRules;
+  iat: number;
+  exp?: number;
+}
+
 /**
  * Generates a tenant token for restricted access to MeiliSearch
+ *
+ * Note: Prefer using the MeiliSearch SDK's client.generateTenantToken() method when available.
+ * This implementation is provided as a fallback for environments where the SDK method is not accessible.
  *
  * @param options - Token generation options
  * @returns JWT token string
@@ -55,7 +65,7 @@ export async function generateTenantToken(
     };
 
     // Create payload
-    const payload: any = {
+    const payload: JWTPayload = {
       apiKeyUid: options.apiKeyUid,
       searchRules: options.searchRules || ['*'],
       iat: Math.floor(Date.now() / 1000)
@@ -149,7 +159,7 @@ export async function validateTenantToken(
  * @param token - JWT token to decode
  * @returns Decoded token payload
  */
-export function decodeTenantToken(token: string): any {
+export function decodeTenantToken(token: string): JWTPayload {
   try {
     const [, encodedPayload] = token.split('.');
     if (!encodedPayload) {

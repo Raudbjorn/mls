@@ -108,7 +108,7 @@
             <span class="locales">
               Locales: {attr.locales.join(', ')}
             </span>
-            <button onclick={() => removeLocalizedAttribute(i)} class="remove">
+            <button on:click={() => removeLocalizedAttribute(i)} class="remove">
               Remove
             </button>
           </li>
@@ -138,7 +138,7 @@
             <input
               type="checkbox"
               checked={selectedLocales.includes(locale)}
-              onchange={() => toggleLocale(locale)}
+              on:change={() => toggleLocale(locale)}
             />
             <span>{locale}</span>
           </label>
@@ -147,7 +147,7 @@
     </div>
 
     <button
-      onclick={addLocalizedAttribute}
+      on:click={addLocalizedAttribute}
       disabled={!newAttributePattern || selectedLocales.length === 0}
       class="add-btn"
     >
@@ -157,7 +157,7 @@
 
   <div class="actions">
     <button
-      onclick={updateLocalizedAttributes}
+      on:click={updateLocalizedAttributes}
       disabled={loading}
       class="save-btn"
     >
