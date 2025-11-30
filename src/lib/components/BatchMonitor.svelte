@@ -66,7 +66,7 @@
             {#if loading && !batches.length}
                 <span>Loading...</span>
             {/if}
-            <button on:click={pollInterval ? stopPolling : startPolling}>
+            <button onclick={() => pollInterval ? stopPolling() : startPolling()}>
                 {pollInterval ? 'Pause' : 'Resume'}
             </button>
         </div>

@@ -1,4 +1,53 @@
 import type { MeiliSearch } from 'meilisearch';
+import type { Network, Webhook, WebhookUpdate, Batch } from '../types/meilisearch';
+
+/**
+ * Response wrapper for paginated webhook lists
+ */
+export interface WebhookListResponse {
+  results: Webhook[];
+  offset: number;
+  limit: number;
+  total: number;
+}
+
+/**
+ * Response wrapper for paginated batch lists
+ */
+export interface BatchListResponse {
+  results: Batch[];
+  offset: number;
+  limit: number;
+  total: number;
+}
+
+/**
+ * Payload for creating a new webhook
+ */
+export interface CreateWebhookPayload {
+  url: string;
+  events?: string[];
+  headers?: Record<string, string>;
+}
+
+/**
+ * Payload for updating network configuration
+ */
+export interface UpdateNetworkPayload {
+  remotes: Array<{
+    url: string;
+    searchApiKey: string;
+    name: string;
+  }>;
+}
+
+/**
+ * Configuration returned by getConfig
+ */
+export interface ClientConfig {
+  host: string;
+  apiKey?: string;
+}
 
 /**
  * Utility functions for accessing MeiliSearch endpoints not exposed by the SDK.
@@ -6,14 +55,14 @@ import type { MeiliSearch } from 'meilisearch';
  */
 
 export interface ApiClient {
-  getNetwork(): Promise<any>;
-  updateNetwork(payload: any): Promise<any>;
-  getWebhooks(): Promise<any>;
-  createWebhook(payload: any): Promise<any>;
-  deleteWebhook(id: string): Promise<any>;
-  getBatches(): Promise<any>;
-  getConfig(): { host: string; apiKey?: string };
-  makeRequest(method: string, path: string, body?: any): Promise<any>;
+  getNetwork(): Promise<Network>;
+  updateNetwork(payload: UpdateNetworkPayload): Promise<Network>;
+  getWebhooks(): Promise<WebhookListResponse>;
+  createWebhook(payload: CreateWebhookPayload): Promise<Webhook>;
+  deleteWebhook(id: string): Promise<void>;
+  getBatches(): Promise<BatchListResponse>;
+  getConfig(): ClientConfig;
+  makeRequest<T = unknown>(method: string, path: string, body?: unknown): Promise<T>;
 }
 
 /**
@@ -32,34 +81,34 @@ export function createApiClient(client: MeiliSearch): ApiClient {
 
   return {
     // Network federation endpoints
-    async getNetwork() {
+    async getNetwork(): Promise<Network> {
       return httpClient.get('/network');
     },
 
-    async updateNetwork(payload: any) {
+    async updateNetwork(payload: UpdateNetworkPayload): Promise<Network> {
       return httpClient.patch('/network', payload);
     },
 
     // Webhook endpoints
-    async getWebhooks() {
+    async getWebhooks(): Promise<WebhookListResponse> {
       return httpClient.get('/webhooks');
     },
 
-    async createWebhook(payload: any) {
+    async createWebhook(payload: CreateWebhookPayload): Promise<Webhook> {
       return httpClient.post('/webhooks', payload);
     },
 
-    async deleteWebhook(id: string) {
+    async deleteWebhook(id: string): Promise<void> {
       return httpClient.delete(`/webhooks/${id}`);
     },
 
     // Batch endpoints
-    async getBatches() {
+    async getBatches(): Promise<BatchListResponse> {
       return httpClient.get('/batches');
     },
 
     // Config access
-    getConfig() {
+    getConfig(): ClientConfig {
       return {
         host: config?.host || '',
         apiKey: config?.apiKey
@@ -67,7 +116,7 @@ export function createApiClient(client: MeiliSearch): ApiClient {
     },
 
     // Generic request method for future extensibility
-    async makeRequest(method: string, path: string, body?: any) {
+    async makeRequest<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
       const methodLower = method.toLowerCase();
       if (methodLower === 'get') {
         return httpClient.get(path);

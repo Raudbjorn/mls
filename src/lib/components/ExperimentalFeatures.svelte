@@ -57,10 +57,10 @@
                 <div class="feature-item">
                     <span class="feature-name">{feature}</span>
                     <label class="switch">
-                        <input 
-                            type="checkbox" 
-                            checked={enabled} 
-                            on:change={() => toggleFeature(feature, enabled)}
+                        <input
+                            type="checkbox"
+                            checked={enabled}
+                            onchange={() => toggleFeature(feature, enabled)}
                         />
                         <span class="slider round"></span>
                     </label>
