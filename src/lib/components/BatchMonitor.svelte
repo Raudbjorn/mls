@@ -1,12 +1,13 @@
 <script lang="ts">
     import { onMount, onDestroy, getContext } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
+    import type { Batch } from '../types/meilisearch';
     import { createApiClient } from '../utils/api';
 
     const { client } = getContext<MeiliContext>('meili');
     const api = createApiClient(client);
 
-    let batches = $state<any[]>([]);
+    let batches = $state<Batch[]>([]);
     let loading = $state(false);
     let error = $state<string | null>(null);
     let pollInterval: number | null = null;

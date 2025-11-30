@@ -183,7 +183,7 @@
                         <svg viewBox="0 0 300 100" preserveAspectRatio="none">
                             <path
                                 d={`M 0,100 ${history.map((p, i) => {
-                                    const x = (i / 29) * 300;
+                                    const x = history.length > 1 ? (i / (history.length - 1)) * 300 : 0;
                                     const maxLat = Math.max(...history.map(h => h.latency), 0.001);
                                     const y = 100 - (p.latency / maxLat) * 80; // Scale to 80% height
                                     return `L ${x},${y}`;
@@ -204,7 +204,7 @@
                             <!-- Total Size -->
                             <path
                                 d={`M 0,100 ${history.map((p, i) => {
-                                    const x = (i / 29) * 300;
+                                    const x = history.length > 1 ? (i / (history.length - 1)) * 300 : 0;
                                     const maxSize = Math.max(...history.map(h => h.dbSize), 1024);
                                     const y = 100 - (p.dbSize / maxSize) * 90;
                                     return `L ${x},${y}`;
@@ -215,7 +215,7 @@
                              <!-- Used Size -->
                              <path
                                 d={`M 0,100 ${history.map((p, i) => {
-                                    const x = (i / 29) * 300;
+                                    const x = history.length > 1 ? (i / (history.length - 1)) * 300 : 0;
                                     const maxSize = Math.max(...history.map(h => h.dbSize), 1024); // Use same scale
                                     const y = 100 - (p.usedDbSize / maxSize) * 90;
                                     return `L ${x},${y}`;

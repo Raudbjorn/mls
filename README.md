@@ -163,8 +163,8 @@ MIT License - see LICENSE file for details
 
 ## Support
 
-- [GitHub Issues](https://github.com/yourusername/mls/issues)
-- [Documentation](https://github.com/yourusername/mls/wiki)
+- [GitHub Issues](https://github.com/Raudbjorn/mls/issues)
+- [Documentation](https://github.com/Raudbjorn/mls/wiki)
 
 ## Acknowledgments
 

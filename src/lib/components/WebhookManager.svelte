@@ -1,12 +1,13 @@
 <script lang="ts">
     import { onMount, getContext } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
+    import type { Webhook } from '../types/meilisearch';
     import { createApiClient } from '../utils/api';
 
     const { client } = getContext<MeiliContext>('meili');
     const api = createApiClient(client);
 
-    let webhooks = $state<any[]>([]);
+    let webhooks = $state<Webhook[]>([]);
     let loading = $state(false);
     let error = $state<string | null>(null);
 
@@ -49,6 +50,7 @@
         loading = true;
         error = null;
 
+        try {
             // Validate URL
             try {
                 new URL(newUrl);
@@ -72,12 +74,12 @@
             };
 
             await api.createWebhook(payload);
-            
+
             // Reset form
             newUrl = '';
             newEvents = [];
             newHeaders = '';
-            
+
             await fetchWebhooks();
         } catch (e: any) {
             error = e.message;

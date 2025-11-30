@@ -25,8 +25,7 @@
         error = null;
 
         try {
-            const task = await client.swapIndexes([{ indexes: [indexA, indexB] }]);
-            await taskService.submitTask(Promise.resolve(task));
+            await taskService.submitTask(client.swapIndexes([{ indexes: [indexA, indexB] }]));
             // Reset inputs on success (task is queued)
             indexA = '';
             indexB = '';

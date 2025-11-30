@@ -1,12 +1,13 @@
 <script lang="ts">
     import { onMount, getContext } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
+    import type { Network } from '../types/meilisearch';
     import { createApiClient } from '../utils/api';
 
     const { client } = getContext<MeiliContext>('meili');
     const api = createApiClient(client);
 
-    let network = $state<any>(null);
+    let network = $state<Network | null>(null);
     let loading = $state(false);
     let error = $state<string | null>(null);
 

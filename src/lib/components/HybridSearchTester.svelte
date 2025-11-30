@@ -14,12 +14,12 @@
     let filter = $state('');
     let facetsInput = $state('');
     
-    let results = $state<any[]>([]);
-    let facetDistribution = $state<any>(null);
+    let results = $state<Record<string, any>[]>([]);
+    let facetDistribution = $state<Record<string, Record<string, number>> | null>(null);
     let searchTime = $state(0);
     let isSearching = $state(false);
     let error = $state<string | null>(null);
-    let timer: any = null;
+    let timer: number | null = null;
 
     async function search() {
         if (!indexUid) return;

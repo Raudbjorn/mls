@@ -1,10 +1,11 @@
 <script lang="ts">
     import { onMount, getContext } from 'svelte';
-    import type { MeiliContext } from '../types/meilisearch';
+    import type { MeiliContext, MeiliTask } from '../types/meilisearch';
 
     const { client, hasAdminRights } = getContext<MeiliContext>('meili');
+    const taskService = getContext<any>('taskService');
 
-    let recentBackups = $state<any[]>([]);
+    let recentBackups = $state<MeiliTask[]>([]);
     let loading = $state(false);
     let error = $state<string | null>(null);
 
@@ -29,11 +30,12 @@
         if (!confirm('Create a new dump? This may take some time.')) return;
         loading = true;
         try {
-            await client.createDump();
-            // Wait a bit for task to be enqueued
-            setTimeout(fetchRecentBackups, 500);
+            await taskService.submitTask(client.createDump());
+            // Refresh the backup list after task is submitted
+            await fetchRecentBackups();
         } catch (e: any) {
             error = e.message;
+        } finally {
             loading = false;
         }
     }
@@ -42,10 +44,12 @@
         if (!confirm('Create a new snapshot?')) return;
         loading = true;
         try {
-            await client.createSnapshot();
-            setTimeout(fetchRecentBackups, 500);
+            await taskService.submitTask(client.createSnapshot());
+            // Refresh the backup list after task is submitted
+            await fetchRecentBackups();
         } catch (e: any) {
             error = e.message;
+        } finally {
             loading = false;
         }
     }

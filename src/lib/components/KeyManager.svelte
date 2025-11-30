@@ -1,10 +1,11 @@
 <script lang="ts">
     import { getContext, onMount } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
+    import type { Key } from 'meilisearch';
 
     const { client, hasAdminRights } = getContext<MeiliContext>('meili');
 
-    let keys = $state<any[]>([]);
+    let keys = $state<Key[]>([]);
     let isLoading = $state(true);
     let error = $state<string | null>(null);
 
@@ -150,7 +151,7 @@
                         {#each keys as key}
                             <tr>
                                 <td>{key.description || 'No description'}</td>
-                                <td class="mono">{key.key.substring(0, 8)}...</td>
+                                <td class="mono">{key.uid.substring(0, 8)}...</td>
                                 <td class="actions-cell">
                                     <div class="tags">
                                         {#each key.actions as action}

@@ -44,8 +44,7 @@
 
         try {
             // Atomic update of all settings
-            const task = await client.index(indexUid).updateSettings(settings);
-            await taskService.submitTask(Promise.resolve(task));
+            await taskService.submitTask(client.index(indexUid).updateSettings(settings));
         } catch (e: any) {
             error = e.message;
         } finally {
