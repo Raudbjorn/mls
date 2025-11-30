@@ -58,7 +58,7 @@
                     {#if config.documentTemplate}
                         <div class="template-preview" title={config.documentTemplate}>
                             Template: {config.documentTemplate.length > 30
-                                ? config.documentTemplate.substring(0, 30) + '...'
+                                ? config.documentTemplate.substring(0, 27) + '...'
                                 : config.documentTemplate}
                         </div>
                     {/if}

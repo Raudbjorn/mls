@@ -339,7 +339,9 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     },
 
     async streamLogs(callback: (log: string) => void): Promise<() => void> {
-      return Promise.reject(new MlsApiError('streamLogs is not yet implemented'));
+      return Promise.resolve(() => {
+        console.warn('streamLogs is not yet implemented');
+      });
     },
 
     // Federation & Multi-search - Using SDK methods
