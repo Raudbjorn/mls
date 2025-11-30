@@ -59,7 +59,7 @@ export class TaskService {
   async submitTask<T extends EnqueuedTask>(promise: Promise<T>): Promise<number> {
     try {
       const response = await promise;
-      if (response && response.taskUid) {
+      if (response && typeof response.taskUid === 'number') {
         await this.addTask(response.taskUid);
         return response.taskUid;
       }

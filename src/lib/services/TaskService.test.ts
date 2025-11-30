@@ -93,6 +93,20 @@ describe('TaskService', () => {
 
       service.destroy();
     });
+
+    it('should handle taskUid: 0 correctly', async () => {
+      const client = createMockClient();
+      const service = new TaskService(client as any);
+
+      const taskUid = await service.submitTask(
+        Promise.resolve(createMockEnqueuedTask(0))
+      );
+
+      expect(taskUid).toBe(0);
+      expect(client.getTask).toHaveBeenCalledWith(0);
+
+      service.destroy();
+    });
   });
 
   describe('addTask', () => {
