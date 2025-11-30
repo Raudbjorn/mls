@@ -50,15 +50,15 @@ function base64UrlDecode(str: string): string {
   if (typeof atob !== 'undefined') {
     const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
     // Add padding if needed (base64 requires padding to be a multiple of 4)
-    const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
     return atob(padded);
   }
 
   // If no method is available, provide a clear error message
   throw new MlsTokenError(
     'Base64 decoding is not available in this environment. ' +
-    'Token validation requires either Node.js Buffer API or browser atob() function. ' +
-    'Consider using the MeiliSearch client\'s built-in validation instead.'
+      'Token validation requires either Node.js Buffer API or browser atob() function. ' +
+      "Consider using the MeiliSearch client's built-in validation instead."
   );
 }
 
@@ -81,15 +81,17 @@ function base64UrlDecode(str: string): string {
  * });
  * ```
  */
-export async function generateTenantToken(
-  options: TenantTokenOptions
-): Promise<string> {
+export async function generateTenantToken(options: TenantTokenOptions): Promise<string> {
   // Input validation
   if (!options.client) {
     throw new MlsTokenError('MeiliSearch client is required');
   }
 
-  if (!options.apiKeyUid || typeof options.apiKeyUid !== 'string' || options.apiKeyUid.trim().length === 0) {
+  if (
+    !options.apiKeyUid ||
+    typeof options.apiKeyUid !== 'string' ||
+    options.apiKeyUid.trim().length === 0
+  ) {
     throw new MlsTokenError('Invalid API key UID: must be a non-empty string');
   }
 
@@ -102,7 +104,11 @@ export async function generateTenantToken(
     }
   }
 
-  if (options.searchRules && !Array.isArray(options.searchRules) && typeof options.searchRules !== 'object') {
+  if (
+    options.searchRules &&
+    !Array.isArray(options.searchRules) &&
+    typeof options.searchRules !== 'object'
+  ) {
     throw new MlsTokenError('Invalid searchRules: must be an object or array');
   }
 
@@ -112,7 +118,7 @@ export async function generateTenantToken(
       options.apiKeyUid,
       options.searchRules || ['*'],
       {
-        expiresAt: options.expiresAt
+        expiresAt: options.expiresAt,
       }
     );
 

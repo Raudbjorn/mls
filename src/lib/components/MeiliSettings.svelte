@@ -23,7 +23,11 @@
 
     // Fetch settings on mount
     onMount(async () => {
-        if (!indexUid) return;
+        if (!indexUid) {
+            isLoading = false;
+            error = 'No index selected';
+            return;
+        }
         try {
             settings = await client.index(indexUid).getSettings();
         } catch (e: any) {

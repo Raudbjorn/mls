@@ -34,10 +34,7 @@ export class BatchService {
   /**
    * Splits documents into batches
    */
-  private *createBatches<T>(
-    documents: T[],
-    batchSize: number
-  ): Generator<T[], void, unknown> {
+  private *createBatches<T>(documents: T[], batchSize: number): Generator<T[], void, unknown> {
     for (let i = 0; i < documents.length; i += batchSize) {
       yield documents.slice(i, i + batchSize);
     }
@@ -58,7 +55,7 @@ export class BatchService {
       primaryKey,
       waitForCompletion = false,
       onBatchComplete,
-      onBatchError
+      onBatchError,
     } = options;
 
     const result: BatchResult = {
@@ -66,7 +63,7 @@ export class BatchService {
       successfulBatches: 0,
       failedBatches: 0,
       tasks: [],
-      errors: []
+      errors: [],
     };
 
     let batchIndex = 0;
@@ -123,7 +120,7 @@ export class BatchService {
     if (result.failedBatches > 0) {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
-        result.errors.map(e => e.batchIndex),
+        result.errors.map((e) => e.batchIndex),
         successfulBatchIndices,
         result.errors,
         result
@@ -179,7 +176,9 @@ export class BatchService {
     const {
       batchSize = this.defaultBatchSize,
       primaryKey,
-      waitForCompletion = false
+      waitForCompletion = false,
+      onBatchComplete,
+      onBatchError,
     } = options;
 
     let batch: T[] = [];
@@ -192,9 +191,10 @@ export class BatchService {
 
         if (batch.length >= batchSize) {
           try {
-            const task = operation === 'add'
-              ? await index.addDocuments(batch, { primaryKey })
-              : await index.updateDocuments(batch, { primaryKey });
+            const task =
+              operation === 'add'
+                ? await index.addDocuments(batch, { primaryKey })
+                : await index.updateDocuments(batch, { primaryKey });
 
             if (waitForCompletion && this.taskService) {
               await this.taskService.waitForTask(task.taskUid);
@@ -217,7 +217,7 @@ export class BatchService {
       // Stream iteration error
       const streamError = new MlsBatchError(
         `Document stream processing failed: ${(error as Error).message}`,
-        errors.map(e => e.batchIndex),
+        errors.map((e) => e.batchIndex),
         [], // No successful batches tracked in stream error case
         errors,
         undefined, // No BatchResult for stream processing
@@ -227,9 +227,10 @@ export class BatchService {
       // Try to process any remaining documents before throwing
       if (batch.length > 0) {
         try {
-          const task = operation === 'add'
-            ? await index.addDocuments(batch, { primaryKey })
-            : await index.updateDocuments(batch, { primaryKey });
+          const task =
+            operation === 'add'
+              ? await index.addDocuments(batch, { primaryKey })
+              : await index.updateDocuments(batch, { primaryKey });
 
           if (waitForCompletion && this.taskService) {
             await this.taskService.waitForTask(task.taskUid);
@@ -246,9 +247,10 @@ export class BatchService {
       // Cleanup: Process remaining documents if any
       if (batch.length > 0) {
         try {
-          const task = operation === 'add'
-            ? await index.addDocuments(batch, { primaryKey })
-            : await index.updateDocuments(batch, { primaryKey });
+          const task =
+            operation === 'add'
+              ? await index.addDocuments(batch, { primaryKey })
+              : await index.updateDocuments(batch, { primaryKey });
 
           if (waitForCompletion && this.taskService) {
             await this.taskService.waitForTask(task.taskUid);
@@ -269,13 +271,14 @@ export class BatchService {
       // If there were any errors, throw a batch error at the end
       if (errors.length > 0) {
         // Generate list of successful batch indices
-        const failedIndices = new Set(errors.map(e => e.batchIndex));
-        const successfulIndices = Array.from({ length: batchCount }, (_, i) => i)
-          .filter(i => !failedIndices.has(i));
+        const failedIndices = new Set(errors.map((e) => e.batchIndex));
+        const successfulIndices = Array.from({ length: batchCount }, (_, i) => i).filter(
+          (i) => !failedIndices.has(i)
+        );
 
         throw new MlsBatchError(
           `${errors.length} batch(es) failed during stream processing`,
-          errors.map(e => e.batchIndex),
+          errors.map((e) => e.batchIndex),
           successfulIndices,
           errors,
           undefined // No BatchResult for stream processing
@@ -288,10 +291,7 @@ export class BatchService {
    * Optimizes batch size based on document size and memory constraints
    * Accounts for MeiliSearch's payload limits and JSON serialization overhead
    */
-  calculateOptimalBatchSize(
-    sampleDocuments: any[],
-    maxMemoryMB: number = 10
-  ): number {
+  calculateOptimalBatchSize(sampleDocuments: any[], maxMemoryMB: number = 10): number {
     if (!sampleDocuments || sampleDocuments.length === 0) {
       return this.defaultBatchSize;
     }
@@ -329,7 +329,7 @@ export class BatchService {
     const calculatedSize = Math.floor(maxBytes / effectiveDocSize);
 
     // Apply reasonable bounds
-    const MIN_BATCH_SIZE = 1;     // At least 1 document
+    const MIN_BATCH_SIZE = 1; // At least 1 document
     const MAX_BATCH_SIZE = 10000; // MeiliSearch recommendation for batch size
 
     // Return clamped value

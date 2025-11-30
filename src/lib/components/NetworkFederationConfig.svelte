@@ -160,18 +160,18 @@
         <h4>Add Remote Instance</h4>
         
         <div class="form-group">
-            <label>Name (Alias)</label>
-            <input type="text" bind:value={newRemoteName} placeholder="e.g. eu-cluster" />
+            <label for="remote-name">Name (Alias)</label>
+            <input id="remote-name" type="text" bind:value={newRemoteName} placeholder="e.g. eu-cluster" />
         </div>
 
         <div class="form-group">
-            <label>URL</label>
-            <input type="url" bind:value={newRemoteUrl} placeholder="https://eu.meilisearch.com" />
+            <label for="remote-url">URL</label>
+            <input id="remote-url" type="url" bind:value={newRemoteUrl} placeholder="https://eu.meilisearch.com" />
         </div>
 
         <div class="form-group">
-            <label>Search API Key</label>
-            <input type="password" bind:value={newRemoteKey} placeholder="Search API Key" />
+            <label for="remote-key">Search API Key</label>
+            <input id="remote-key" type="password" bind:value={newRemoteKey} placeholder="Search API Key" />
         </div>
 
         <button onclick={addRemote} disabled={loading || !newRemoteUrl || !newRemoteName}>

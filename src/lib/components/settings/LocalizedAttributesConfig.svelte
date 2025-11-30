@@ -3,7 +3,7 @@
   import type { MeiliContext } from '../../types/meilisearch';
   import { createExtendedApiClient, type LocalizedAttributesSettings } from '../../utils/extended-api';
 
-  export let indexUid: string;
+  let { indexUid } = $props<{ indexUid: string }>();
 
   const { client } = getContext<MeiliContext>('meili');
   const api = createExtendedApiClient(client);
@@ -67,8 +67,8 @@
     }
   }
 
-  function removeLocalizedAttribute(index: number) {
-    localizedAttributes = localizedAttributes.filter((_, i) => i !== index);
+  function removeLocalizedAttribute(attrIndex: number) {
+    localizedAttributes = localizedAttributes.filter((_, i) => i !== attrIndex);
   }
 
   function toggleLocale(locale: string) {
@@ -107,7 +107,7 @@
             <span class="locales">
               Locales: {attr.locales.join(', ')}
             </span>
-            <button on:click={() => removeLocalizedAttribute(i)} class="remove">
+            <button onclick={() => removeLocalizedAttribute(i)} class="remove">
               Remove
             </button>
           </li>
@@ -133,11 +133,12 @@
       <label>Select Locales:</label>
       <div class="locale-grid">
         {#each availableLocales as locale}
-          <label class="locale-checkbox">
+          <label class="locale-checkbox" for="locale-{locale}">
             <input
+              id="locale-{locale}"
               type="checkbox"
               checked={selectedLocales.includes(locale)}
-              on:change={() => toggleLocale(locale)}
+              onchange={() => toggleLocale(locale)}
             />
             <span>{locale}</span>
           </label>
@@ -146,7 +147,7 @@
     </div>
 
     <button
-      on:click={addLocalizedAttribute}
+      onclick={addLocalizedAttribute}
       disabled={!newAttributePattern || selectedLocales.length === 0}
       class="add-btn"
     >
@@ -156,7 +157,7 @@
 
   <div class="actions">
     <button
-      on:click={updateLocalizedAttributes}
+      onclick={updateLocalizedAttributes}
       disabled={loading}
       class="save-btn"
     >

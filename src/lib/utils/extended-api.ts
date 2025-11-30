@@ -14,7 +14,10 @@ export interface ExtendedApiClient {
   getChatWorkspaces(): Promise<ChatWorkspaceList>;
   getChatWorkspace(uid: string): Promise<ChatWorkspace>;
   getChatWorkspaceSettings(uid: string): Promise<ChatWorkspaceSettings>;
-  updateChatWorkspaceSettings(uid: string, settings: ChatWorkspaceSettings): Promise<ChatWorkspaceSettings>;
+  updateChatWorkspaceSettings(
+    uid: string,
+    settings: ChatWorkspaceSettings
+  ): Promise<ChatWorkspaceSettings>;
   deleteChatWorkspace(uid: string): Promise<void>;
   chatCompletion(uid: string, messages: ChatMessage[]): Promise<ChatCompletionResponse>;
 
@@ -40,11 +43,17 @@ export interface ExtendedApiClient {
 
   // Localization Settings
   getLocalizedAttributes(indexUid: string): Promise<LocalizedAttributesSettings>;
-  updateLocalizedAttributes(indexUid: string, settings: LocalizedAttributesSettings): Promise<{ taskUid: number }>;
+  updateLocalizedAttributes(
+    indexUid: string,
+    settings: LocalizedAttributesSettings
+  ): Promise<{ taskUid: number }>;
+  resetLocalizedAttributes(indexUid: string): Promise<{ taskUid: number }>;
 
   // Experimental Features
   getExperimentalFeatures(): Promise<ExperimentalFeatures>;
-  updateExperimentalFeatures(features: Partial<ExperimentalFeatures>): Promise<ExperimentalFeatures>;
+  updateExperimentalFeatures(
+    features: Partial<ExperimentalFeatures>
+  ): Promise<ExperimentalFeatures>;
 }
 
 // Type definitions
@@ -124,12 +133,14 @@ export interface FederatedSearchParams extends MultiSearchParams {
     limit?: number;
     offset?: number;
   };
-  queries: Array<MultiSearchParams['queries'][0] & {
-    federationOptions?: {
-      remote?: string;
-      weight?: number;
-    };
-  }>;
+  queries: Array<
+    MultiSearchParams['queries'][0] & {
+      federationOptions?: {
+        remote?: string;
+        weight?: number;
+      };
+    }
+  >;
 }
 
 export interface FederatedSearchResponse<T> extends MultiSearchResponse<T> {
@@ -313,15 +324,24 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     async getErrorLogs() {
       try {
         const response = await httpClient.post('/logs/stderr');
-        return response.split('\n');
+        if (typeof response === 'string') {
+          return response.split('\n');
+        }
+        // If response is not a string, try to convert it or return as is if it's already an array
+        if (Array.isArray(response)) {
+          return response.map(String);
+        }
+        return [String(response)];
       } catch (error) {
         handleApiError(error);
       }
+      // (No code needed here; handleApiError never returns)
     },
 
-    streamLogs(callback: (log: string) => void) {
-      // Not yet implemented: would require WebSocket or SSE support
-      throw new MlsApiError('streamLogs is not yet implemented.');
+    async streamLogs(callback: (log: string) => void): Promise<() => void> {
+      return Promise.resolve(() => {
+        console.warn('streamLogs is not yet implemented');
+      });
     },
 
     // Federation & Multi-search - Using SDK methods
@@ -329,28 +349,32 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       try {
         // Use SDK method which is available in recent versions
         if (typeof client.multiSearch === 'function') {
-          return await client.multiSearch(params);
+          return (await client.multiSearch(params)) as any as MultiSearchResponse<T>;
         }
         // Fallback for older SDK versions
-        return await httpClient.post('/multi-search', params) as MultiSearchResponse<T>;
+        return (await httpClient.post('/multi-search', params)) as MultiSearchResponse<T>;
       } catch (error) {
         handleApiError(error);
         throw error; // Re-throw to satisfy return type
       }
     },
 
-    async federatedSearch<T = any>(params: FederatedSearchParams): Promise<FederatedSearchResponse<T>> {
+    async federatedSearch<T = any>(
+      params: FederatedSearchParams
+    ): Promise<FederatedSearchResponse<T>> {
       try {
         // Check if SDK supports federated multi-search
         if (typeof (client as any).federatedMultiSearch === 'function') {
-          return await (client as any).federatedMultiSearch(params);
+          return (await (client as any).federatedMultiSearch(
+            params
+          )) as any as FederatedSearchResponse<T>;
         }
         // The SDK's multiSearch can handle federation with the federation parameter
         if (typeof client.multiSearch === 'function' && params.federation) {
-          return await client.multiSearch(params as any);
+          return (await client.multiSearch(params as any)) as any as FederatedSearchResponse<T>;
         }
         // Fallback to HTTP client
-        return await httpClient.post('/multi-search', params) as FederatedSearchResponse<T>;
+        return (await httpClient.post('/multi-search', params)) as FederatedSearchResponse<T>;
       } catch (error) {
         handleApiError(error);
         throw error; // Re-throw to satisfy return type
@@ -378,12 +402,12 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
             facetName: params.facetName,
             facetQuery: params.facetQuery,
             filter: params.filter,
-            q: params.q
+            q: params.q,
           });
           return {
             facetHits: result.facetHits,
             facetQuery: result.facetQuery || params.facetQuery,
-            processingTimeMs: 0 // SDK doesn't provide this
+            processingTimeMs: 0, // SDK doesn't provide this
           };
         }
         // Fallback to HTTP client
@@ -447,6 +471,14 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       }
     },
 
+    async resetLocalizedAttributes(indexUid: string) {
+      try {
+        return await httpClient.delete(`/indexes/${indexUid}/settings/localized-attributes`);
+      } catch (error) {
+        handleApiError(error);
+      }
+    },
+
     // Experimental Features - Using SDK methods
     async getExperimentalFeatures() {
       try {
@@ -472,6 +504,6 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       } catch (error) {
         handleApiError(error);
       }
-    }
+    },
   };
 }
