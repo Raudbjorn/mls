@@ -125,7 +125,8 @@ export class BatchService {
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
         successfulBatchIndices,
-        result.errors
+        result.errors,
+        result
       );
     }
 
@@ -219,6 +220,7 @@ export class BatchService {
         errors.map(e => e.batchIndex),
         [], // No successful batches tracked in stream error case
         errors,
+        undefined, // No BatchResult for stream processing
         error
       );
 
@@ -275,7 +277,8 @@ export class BatchService {
           `${errors.length} batch(es) failed during stream processing`,
           errors.map(e => e.batchIndex),
           successfulIndices,
-          errors
+          errors,
+          undefined // No BatchResult for stream processing
         );
       }
     }

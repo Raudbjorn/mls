@@ -3,6 +3,8 @@
  * Provides better error handling and debugging capabilities
  */
 
+import type { BatchResult } from '../services/BatchService';
+
 /**
  * Base error class for all MLS errors
  */
@@ -77,6 +79,7 @@ export class MlsBatchError extends MlsError {
     public failedBatches: number[],
     public successfulBatches: number[],
     public errors?: Array<{ batchIndex: number; error: Error }>,
+    public batchResult?: BatchResult,
     cause?: unknown
   ) {
     super(message, cause);

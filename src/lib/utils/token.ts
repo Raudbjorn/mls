@@ -28,21 +28,38 @@ export interface JWTPayload {
 
 /**
  * Simple Base64URL decode for token validation
- * Only used for decoding JWT tokens
+ * Works in both Node.js and browser environments
  */
 function base64UrlDecode(str: string): string {
-  if (typeof globalThis !== 'undefined' && globalThis.Buffer) {
-    // Node.js environment
+  // First try Node.js Buffer (works in Node.js 14+)
+  if (typeof globalThis !== 'undefined' && typeof globalThis.Buffer !== 'undefined') {
     return Buffer.from(str, 'base64url').toString();
-  } else if (typeof atob !== 'undefined') {
-    // Browser environment
+  }
+
+  // Try Node.js require (for older Node or when Buffer isn't on globalThis)
+  if (typeof require !== 'undefined') {
+    try {
+      const buffer = require('buffer').Buffer;
+      return buffer.from(str, 'base64url').toString();
+    } catch {
+      // Fall through to next method
+    }
+  }
+
+  // Try browser's atob
+  if (typeof atob !== 'undefined') {
     const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
     // Add padding if needed (base64 requires padding to be a multiple of 4)
     const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
     return atob(padded);
-  } else {
-    throw new MlsTokenError('No Base64 decoding method available in this environment');
   }
+
+  // If no method is available, provide a clear error message
+  throw new MlsTokenError(
+    'Base64 decoding is not available in this environment. ' +
+    'Token validation requires either Node.js Buffer API or browser atob() function. ' +
+    'Consider using the MeiliSearch client\'s built-in validation instead.'
+  );
 }
 
 /**

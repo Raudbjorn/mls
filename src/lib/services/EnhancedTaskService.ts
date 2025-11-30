@@ -87,24 +87,25 @@ export class EnhancedTaskService {
     taskUidsOrEnqueuedTasks: Iterable<number | EnqueuedTask>,
     options?: WaitOptions
   ): AsyncGenerator<Task, void, undefined> {
-    const taskPromises = Array.from(taskUidsOrEnqueuedTasks).map(task =>
-      this.waitForTask(task, options)
-    );
+    // Create array of {promise, index} wrappers
+    const pending = Array.from(taskUidsOrEnqueuedTasks).map((task, index) => ({
+      promise: this.waitForTask(task, options).then(result => ({ index, result })),
+      index
+    }));
 
-    // Use Promise.race to yield results as they complete
-    const pending = new Set<Promise<{ index: number, result: Task }>>();
-    taskPromises.forEach((p, i) => {
-      // Create a wrapper promise that removes itself from the set when resolved
-      const wrapper = p.then(result => {
-        pending.delete(wrapper);
-        return { index: i, result };
-      });
-      pending.add(wrapper);
-    });
+    // Continue while we have pending tasks
+    while (pending.length > 0) {
+      // Race all pending promises
+      const completed = await Promise.race(pending.map(p => p.promise));
 
-    while (pending.size > 0) {
-      const { result } = await Promise.race(pending);
-      yield result;
+      // Yield the completed result
+      yield completed.result;
+
+      // Remove the completed promise from pending array
+      const completedIndex = pending.findIndex(p => p.index === completed.index);
+      if (completedIndex !== -1) {
+        pending.splice(completedIndex, 1);
+      }
     }
   }
 
