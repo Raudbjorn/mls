@@ -205,7 +205,7 @@ export class BatchService {
 
     for (const batch of this.createBatches(documentIds, batchSize)) {
       try {
-        const task = await index.deleteDocuments(batch);
+        const task = await index.deleteDocuments(batch as string[] | number[]);
         result.tasks.push(task);
         result.successfulBatches++;
         successfulBatchIndices.push(batchIndex);
