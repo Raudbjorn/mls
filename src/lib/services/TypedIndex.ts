@@ -10,11 +10,11 @@ import type {
   EnqueuedTask,
   TypoTolerance,
   Faceting,
-  PaginationSettings,
+  Pagination,
 } from 'meilisearch';
+import { MlsTaskTimeoutError } from '../errors';
 import type { BatchService } from './BatchService';
 import type { EnhancedTaskService } from './EnhancedTaskService';
-import { MlsTaskTimeoutError } from '../errors';
 
 export interface TypedDocument {
   id?: string | number;
@@ -63,9 +63,6 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
 
   /**
    * Performs a typed facet search
-   *
-   * Note: Consider using the MeiliSearch SDK's index.searchForFacetValues() method
-   * if available in your SDK version, as it provides better type safety and support.
    */
   async searchFacets(
     facetName: keyof T,
@@ -75,26 +72,11 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       q?: string;
     }
   ): Promise<Array<{ value: string; count: number }>> {
-    // Check if SDK has searchForFacetValues method
-    if (typeof (this.index as any).searchForFacetValues === 'function') {
-      const options = {
-        facetName: String(facetName),
-        facetQuery,
-        ...params,
-      };
-      const response = await (this.index as any).searchForFacetValues(options);
-      return response.facetHits || [];
-    }
-
-    // Fallback for older SDK versions
-    const response = await (this.index as any).httpRequest.post(
-      `/indexes/${this.index.uid}/facet-search`,
-      {
-        facetName: String(facetName),
-        facetQuery,
-        ...params,
-      }
-    );
+    const response = await this.index.searchForFacetValues({
+      facetName: String(facetName),
+      facetQuery,
+      ...params,
+    });
 
     return response.facetHits;
   }
@@ -125,11 +107,11 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       fields: params?.fields?.map(String) as any,
     });
 
-    return {
-      results: response.results as T[],
-      total: response.total || 0,
-      limit: response.limit || 0,
-      offset: response.offset || 0,
+    return response as {
+      results: T[];
+      total: number;
+      limit: number;
+      offset: number;
     };
   }
 
@@ -207,7 +189,8 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
    */
   async deleteDocuments(ids: string[] | number[] | { filter: string }): Promise<EnqueuedTask> {
     if (Array.isArray(ids)) {
-      return this.index.deleteDocuments(ids.map(String));
+      // SDK requires consistent types - all strings or all numbers
+      return this.index.deleteDocuments(ids as string[] | number[]);
     }
     // For filter-based deletion
     return this.index.deleteDocuments(ids);
@@ -233,7 +216,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
     synonyms?: Record<string, string[]>;
     typoTolerance?: TypoTolerance;
     faceting?: Faceting;
-    pagination?: PaginationSettings;
+    pagination?: Pagination;
   }): Promise<EnqueuedTask> {
     const mappedSettings: any = { ...settings };
 
@@ -265,6 +248,15 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       embedder?: string;
     }
   ): Promise<SearchResponse<T>> {
+    // Check if SDK has the searchSimilarDocuments method
+    if (typeof (this.index as any).searchSimilarDocuments === 'function') {
+      return await (this.index as any).searchSimilarDocuments({
+        id: String(id),
+        ...params,
+      });
+    }
+
+    // Fallback to direct HTTP request for older SDK versions
     return await (this.index as any).httpRequest.post(`/indexes/${this.index.uid}/similar`, {
       id: String(id),
       ...params,
@@ -273,6 +265,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
 
   /**
    * Performs bulk document edits using JSON Patch operations
+   * Note: This is an experimental feature requiring editDocumentsByFunction to be enabled
    */
   async editDocuments(
     edits: Array<{
@@ -284,6 +277,7 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
       }>;
     }>
   ): Promise<EnqueuedTask> {
+    // Direct HTTP request as SDK doesn't yet have this experimental method
     return await (this.index as any).httpRequest.post(`/indexes/${this.index.uid}/documents/edit`, {
       edits,
     });
@@ -291,8 +285,10 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
 
   /**
    * Fetches specific documents by their IDs
+   * Note: This is an experimental endpoint not yet available in the SDK
    */
   async fetchDocuments(ids: (string | number)[]): Promise<T[]> {
+    // Direct HTTP request as SDK doesn't yet have this method
     return await (this.index as any).httpRequest.post(
       `/indexes/${this.index.uid}/documents/fetch`,
       { ids: ids.map(String) }
@@ -307,11 +303,10 @@ export class TypedIndex<T extends TypedDocument = TypedDocument> {
     isIndexing: boolean;
     fieldDistribution: Record<keyof T, number>;
   }> {
-    const stats = await this.index.getStats();
-    return {
-      numberOfDocuments: stats.numberOfDocuments,
-      isIndexing: stats.isIndexing,
-      fieldDistribution: stats.fieldDistribution as Record<keyof T, number>,
+    return this.index.getStats() as any as {
+      numberOfDocuments: number;
+      isIndexing: boolean;
+      fieldDistribution: Record<keyof T, number>;
     };
   }
 

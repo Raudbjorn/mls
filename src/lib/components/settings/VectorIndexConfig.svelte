@@ -47,11 +47,11 @@
             <label title="Number of bi-directional links created for every new element during construction.">
                 M (Connections per node)
             </label>
-            <input 
-                type="number" 
-                bind:value={hnswConfig.m} 
-                on:change={updateConfig}
-                min="4" 
+            <input
+                type="number"
+                bind:value={hnswConfig.m}
+                onchange={updateConfig}
+                min="4"
                 max="100"
             />
             <p class="hint-small">Higher = better recall, slower indexing. Default: 16</p>
@@ -61,10 +61,10 @@
             <label title="Size of the dynamic list for the nearest neighbors (used during construction).">
                 efConstruction (Beam size)
             </label>
-            <input 
-                type="number" 
-                bind:value={hnswConfig.efConstruction} 
-                on:change={updateConfig}
+            <input
+                type="number"
+                bind:value={hnswConfig.efConstruction}
+                onchange={updateConfig}
                 min="10"
             />
             <p class="hint-small">Higher = better quality, slower indexing. Default: 200</p>

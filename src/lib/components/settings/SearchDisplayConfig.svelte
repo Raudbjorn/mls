@@ -70,9 +70,9 @@
                 <li class="attr-item">
                     <span class="name">{attr}</span>
                     <div class="actions">
-                        <button on:click={() => moveSearchable(i, 'up')} disabled={i === 0}>↑</button>
-                        <button on:click={() => moveSearchable(i, 'down')} disabled={i === searchableAttributes.length - 1}>↓</button>
-                        <button on:click={() => removeSearchable(i)} class="delete">×</button>
+                        <button onclick={() => moveSearchable(i, 'up')} disabled={i === 0}>↑</button>
+                        <button onclick={() => moveSearchable(i, 'down')} disabled={i === searchableAttributes.length - 1}>↓</button>
+                        <button onclick={() => removeSearchable(i)} class="delete">×</button>
                     </div>
                 </li>
             {/each}
@@ -81,9 +81,9 @@
         <div class="controls">
             <div class="add-input">
                 <input type="text" bind:value={newSearchable} placeholder="Attribute name" />
-                <button on:click={addSearchable}>Add</button>
+                <button onclick={addSearchable}>Add</button>
             </div>
-            <button on:click={resetSearchable} class="reset-btn">Reset to All ('*')</button>
+            <button onclick={resetSearchable} class="reset-btn">Reset to All ('*')</button>
         </div>
     </div>
 
@@ -96,16 +96,16 @@
 
         <div class="tags">
             {#each displayedAttributes as attr}
-                <span class="tag">{attr} <button on:click={() => removeDisplayed(attr)}>×</button></span>
+                <span class="tag">{attr} <button onclick={() => removeDisplayed(attr)}>×</button></span>
             {/each}
         </div>
 
         <div class="controls">
             <div class="add-input">
                 <input type="text" bind:value={newDisplayed} placeholder="Attribute name" />
-                <button on:click={addDisplayed}>Add</button>
+                <button onclick={addDisplayed}>Add</button>
             </div>
-            <button on:click={resetDisplayed} class="reset-btn">Reset to All ('*')</button>
+            <button onclick={resetDisplayed} class="reset-btn">Reset to All ('*')</button>
         </div>
     </div>
 </div>

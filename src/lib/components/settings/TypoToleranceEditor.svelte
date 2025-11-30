@@ -73,12 +73,12 @@
                 <p class="hint">Specific words where typos should strictly NOT be corrected (e.g. brand names).</p>
                 <div class="tags">
                     {#each typoTolerance.disableOnWords as word}
-                        <span class="tag">{word} <button on:click={() => removeDisabledWord(word)}>×</button></span>
+                        <span class="tag">{word} <button onclick={() => removeDisabledWord(word)}>×</button></span>
                     {/each}
                 </div>
                 <div class="add-input">
                     <input type="text" bind:value={newDisabledWord} placeholder="Word" />
-                    <button on:click={addDisabledWord}>Add</button>
+                    <button onclick={addDisabledWord}>Add</button>
                 </div>
             </div>
 
@@ -87,12 +87,12 @@
                 <p class="hint">Attributes where typos should not be corrected (e.g. SKU, serial numbers).</p>
                 <div class="tags">
                     {#each typoTolerance.disableOnAttributes as attr}
-                        <span class="tag">{attr} <button on:click={() => removeDisabledAttr(attr)}>×</button></span>
+                        <span class="tag">{attr} <button onclick={() => removeDisabledAttr(attr)}>×</button></span>
                     {/each}
                 </div>
                 <div class="add-input">
                     <input type="text" bind:value={newDisabledAttr} placeholder="Attribute" />
-                    <button on:click={addDisabledAttr}>Add</button>
+                    <button onclick={addDisabledAttr}>Add</button>
                 </div>
             </div>
         {/if}

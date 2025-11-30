@@ -143,7 +143,7 @@
         <div class="enable-metrics">
             <p>The Metrics feature is currently disabled.</p>
             <p class="info">Enabling this feature allows monitoring of system performance and resource usage.</p>
-            <button class="enable-btn" on:click={enableMetrics} disabled={!hasAdminRights}>
+            <button class="enable-btn" onclick={enableMetrics} disabled={!hasAdminRights}>
                 Enable Metrics
             </button>
             {#if !hasAdminRights}

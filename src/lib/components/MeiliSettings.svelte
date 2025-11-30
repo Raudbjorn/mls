@@ -1,7 +1,7 @@
 <script lang="ts">
     import { getContext, onMount } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
-    import type { TaskService } from '../services/TaskService.svelte.ts';
+    import type { TaskService } from '../services/TaskService';
     import RankingRulesEditor from './settings/RankingRulesEditor.svelte';
     import SynonymManager from './settings/SynonymManager.svelte';
     import FilterAttributeConfig from './settings/FilterAttributeConfig.svelte';
@@ -89,8 +89,8 @@
             <VectorIndexConfig bind:vectorIndexes={settings.vectorIndexes} />
 
             <div class="actions">
-                <button 
-                    on:click={saveSettings} 
+                <button
+                    onclick={saveSettings}
                     disabled={isSaving || !hasAdminRights}
                     class="save-btn"
                 >

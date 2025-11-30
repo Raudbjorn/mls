@@ -132,11 +132,11 @@
         <div class="controls">
             <span class="status {logs.status}">{logs.status}</span>
             {#if logs.status === 'streaming' || logs.status === 'connecting'}
-                <button on:click={stopLogStream}>Stop</button>
+                <button onclick={stopLogStream}>Stop</button>
             {:else}
-                <button on:click={startLogStream}>Start</button>
+                <button onclick={startLogStream}>Start</button>
             {/if}
-            <button on:click={() => logs.lines = []}>Clear</button>
+            <button onclick={() => logs.lines = []}>Clear</button>
         </div>
     </div>
 

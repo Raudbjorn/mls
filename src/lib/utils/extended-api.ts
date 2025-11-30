@@ -41,11 +41,11 @@ export interface ExtendedApiClient {
   fetchDocuments(indexUid: string, ids: (string | number)[]): Promise<any[]>;
   editDocuments(indexUid: string, edits: DocumentEdit[]): Promise<{ taskUid: number }>;
 
-  // Localized Attributes
-  getLocalizedAttributes(indexUid: string): Promise<LocalizedAttribute[]>;
+  // Localization Settings
+  getLocalizedAttributes(indexUid: string): Promise<LocalizedAttributesSettings>;
   updateLocalizedAttributes(
     indexUid: string,
-    localizedAttributes: LocalizedAttribute[]
+    settings: LocalizedAttributesSettings
   ): Promise<{ taskUid: number }>;
   resetLocalizedAttributes(indexUid: string): Promise<{ taskUid: number }>;
 
@@ -164,10 +164,6 @@ export interface FacetSearchParams {
   q?: string;
 }
 
-// Note: The MeiliSearch SDK provides built-in client.multiSearch() method.
-// Consider using the SDK method when available for better type safety and support.
-// The implementations below are provided as fallbacks for advanced use cases.
-
 export interface FacetSearchResponse {
   facetHits: Array<{
     value: string;
@@ -186,9 +182,11 @@ export interface DocumentEdit {
   }>;
 }
 
-export interface LocalizedAttribute {
-  attributePattern: string;
-  locales: string[];
+export interface LocalizedAttributesSettings {
+  localizedAttributes?: Array<{
+    attributePatterns: string[];
+    locales: string[];
+  }> | null;
 }
 
 export interface ExperimentalFeatures {
@@ -279,10 +277,14 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       }
     },
 
-    // System Management
-    // Note: Consider using client.createDump() from the MeiliSearch SDK when available
+    // System Management - Using SDK methods where available
     async createDump() {
       try {
+        // Use SDK method if available
+        if (typeof client.createDump === 'function') {
+          return await client.createDump();
+        }
+        // Fallback to HTTP client for older SDK versions
         return await httpClient.post('/dumps');
       } catch (error) {
         handleApiError(error);
@@ -291,6 +293,11 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async createSnapshot() {
       try {
+        // Use SDK method if available
+        if (typeof client.createSnapshot === 'function') {
+          return await client.createSnapshot();
+        }
+        // Fallback to HTTP client for older SDK versions
         return await httpClient.post('/snapshots');
       } catch (error) {
         handleApiError(error);
@@ -335,13 +342,18 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       return Promise.reject(new MlsApiError('streamLogs is not yet implemented'));
     },
 
-    // Federation & Multi-search
-    // Note: Consider using client.multiSearch() from the MeiliSearch SDK when available
+    // Federation & Multi-search - Using SDK methods
     async multiSearch<T = any>(params: MultiSearchParams): Promise<MultiSearchResponse<T>> {
       try {
-        return await httpClient.post('/multi-search', params);
+        // Use SDK method which is available in recent versions
+        if (typeof client.multiSearch === 'function') {
+          return (await client.multiSearch(params)) as any as MultiSearchResponse<T>;
+        }
+        // Fallback for older SDK versions
+        return (await httpClient.post('/multi-search', params)) as MultiSearchResponse<T>;
       } catch (error) {
         handleApiError(error);
+        throw error; // Re-throw to satisfy return type
       }
     },
 
@@ -349,15 +361,30 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       params: FederatedSearchParams
     ): Promise<FederatedSearchResponse<T>> {
       try {
-        return await httpClient.post('/multi-search', params);
+        // Check if SDK supports federated multi-search
+        if (typeof (client as any).federatedMultiSearch === 'function') {
+          return (await (client as any).federatedMultiSearch(
+            params
+          )) as any as FederatedSearchResponse<T>;
+        }
+        // The SDK's multiSearch can handle federation with the federation parameter
+        if (typeof client.multiSearch === 'function' && params.federation) {
+          return (await client.multiSearch(params as any)) as any as FederatedSearchResponse<T>;
+        }
+        // Fallback to HTTP client
+        return (await httpClient.post('/multi-search', params)) as FederatedSearchResponse<T>;
       } catch (error) {
         handleApiError(error);
+        throw error; // Re-throw to satisfy return type
       }
     },
 
     // Advanced Index Operations
     async getSimilarDocuments(indexUid: string, params: SimilarDocumentsParams) {
       try {
+        const index = client.index(indexUid);
+        // Check if SDK supports similar documents (not available in current SDK)
+        // This is an experimental feature not yet in the SDK
         return await httpClient.post(`/indexes/${indexUid}/similar`, params);
       } catch (error) {
         handleApiError(error);
@@ -366,6 +393,22 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async facetSearch(indexUid: string, params: FacetSearchParams) {
       try {
+        const index = client.index(indexUid);
+        // Check if SDK supports searchForFacetValues
+        if (typeof index.searchForFacetValues === 'function') {
+          const result = await index.searchForFacetValues({
+            facetName: params.facetName,
+            facetQuery: params.facetQuery,
+            filter: params.filter,
+            q: params.q,
+          });
+          return {
+            facetHits: result.facetHits,
+            facetQuery: result.facetQuery || params.facetQuery,
+            processingTimeMs: 0, // SDK doesn't provide this
+          };
+        }
+        // Fallback to HTTP client
         return await httpClient.post(`/indexes/${indexUid}/facet-search`, params);
       } catch (error) {
         handleApiError(error);
@@ -374,6 +417,22 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async fetchDocuments(indexUid: string, ids: (string | number)[]) {
       try {
+        const index = client.index(indexUid);
+        // Check if SDK supports fetchDocuments (available as getDocuments with filter)
+        if (typeof index.getDocuments === 'function') {
+          // Use getDocuments to fetch specific documents
+          const results: any[] = [];
+          for (const id of ids) {
+            try {
+              const doc = await index.getDocument(String(id));
+              results.push(doc);
+            } catch (e) {
+              // Document not found, skip
+            }
+          }
+          return results;
+        }
+        // Fallback to HTTP client for batch fetch
         return await httpClient.post(`/indexes/${indexUid}/documents/fetch`, { ids });
       } catch (error) {
         handleApiError(error);
@@ -382,13 +441,15 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async editDocuments(indexUid: string, edits: DocumentEdit[]) {
       try {
+        // Document editing with JSON Patch is not available in SDK
+        // This is an experimental feature
         return await httpClient.post(`/indexes/${indexUid}/documents/edit`, { edits });
       } catch (error) {
         handleApiError(error);
       }
     },
 
-    // Localized Attributes
+    // Localization Settings
     async getLocalizedAttributes(indexUid: string) {
       try {
         return await httpClient.get(`/indexes/${indexUid}/settings/localized-attributes`);
@@ -397,11 +458,11 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       }
     },
 
-    async updateLocalizedAttributes(indexUid: string, localizedAttributes: LocalizedAttribute[]) {
+    async updateLocalizedAttributes(indexUid: string, settings: LocalizedAttributesSettings) {
       try {
         return await httpClient.put(
           `/indexes/${indexUid}/settings/localized-attributes`,
-          localizedAttributes
+          settings.localizedAttributes
         );
       } catch (error) {
         handleApiError(error);
@@ -416,9 +477,14 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
       }
     },
 
-    // Experimental Features
+    // Experimental Features - Using SDK methods
     async getExperimentalFeatures() {
       try {
+        // Use SDK method which is available
+        if (typeof (client as any).getExperimentalFeatures === 'function') {
+          return await (client as any).getExperimentalFeatures();
+        }
+        // Fallback for older SDK versions
         return await httpClient.get('/experimental-features');
       } catch (error) {
         handleApiError(error);
@@ -427,6 +493,11 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
 
     async updateExperimentalFeatures(features: Partial<ExperimentalFeatures>) {
       try {
+        // Use SDK method which is available
+        if (typeof (client as any).updateExperimentalFeatures === 'function') {
+          return await (client as any).updateExperimentalFeatures(features);
+        }
+        // Fallback for older SDK versions
         return await httpClient.patch('/experimental-features', features);
       } catch (error) {
         handleApiError(error);

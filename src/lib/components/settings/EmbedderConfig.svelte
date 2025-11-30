@@ -63,7 +63,7 @@
                         </div>
                     {/if}
                 </div>
-                <button on:click={() => removeEmbedder(name)} class="delete">Remove</button>
+                <button onclick={() => removeEmbedder(name)} class="delete">Remove</button>
             </div>
         {/each}
     </div>
@@ -112,9 +112,9 @@
 
         <div class="form-group">
             <label>Document Template (Optional)</label>
-            <textarea 
-                bind:value={documentTemplate} 
-                placeholder="A document titled '{{doc.title}}'..."
+            <textarea
+                bind:value={documentTemplate}
+                placeholder="A document titled '[doc.title]'..."
                 rows="3"
             ></textarea>
             <p class="hint-small">Liquid template to format document for embedding.</p>

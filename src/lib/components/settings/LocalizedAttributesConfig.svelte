@@ -1,13 +1,17 @@
 <script lang="ts">
   import { onMount, getContext } from 'svelte';
   import type { MeiliContext } from '../../types/meilisearch';
-  import type { Index } from 'meilisearch';
-  import type { LocalizedAttribute } from '../../utils/extended-api';
+  import { createExtendedApiClient, type LocalizedAttributesSettings } from '../../utils/extended-api';
 
-  export let indexUid: string;
+  let { indexUid } = $props<{ indexUid: string }>();
 
   const { client } = getContext<MeiliContext>('meili');
-  const index = client.index(indexUid) as any;
+  const api = createExtendedApiClient(client);
+
+  interface LocalizedAttribute {
+    attributePatterns: string[];
+    locales: string[];
+  }
 
   let localizedAttributes = $state<LocalizedAttribute[]>([]);
   let loading = $state(false);
@@ -26,8 +30,8 @@
     loading = true;
     error = null;
     try {
-      const settings = await index.getLocalizedAttributes();
-      localizedAttributes = settings || [];
+      const settings = await api.getLocalizedAttributes(indexUid);
+      localizedAttributes = settings.localizedAttributes || [];
     } catch (e: any) {
       error = e.message;
     } finally {
@@ -39,7 +43,10 @@
     loading = true;
     error = null;
     try {
-      await index.updateLocalizedAttributes(localizedAttributes);
+      const settings: LocalizedAttributesSettings = {
+        localizedAttributes: localizedAttributes.length > 0 ? localizedAttributes : null
+      };
+      await api.updateLocalizedAttributes(indexUid, settings);
       await fetchLocalizedAttributes();
     } catch (e: any) {
       error = e.message;
@@ -49,9 +56,10 @@
   }
 
   function addLocalizedAttribute() {
+    error = null;
     if (newAttributePattern && selectedLocales.length > 0) {
       localizedAttributes = [...localizedAttributes, {
-        attributePattern: newAttributePattern,
+        attributePatterns: [newAttributePattern],
         locales: [...selectedLocales]
       }];
       newAttributePattern = '';
@@ -95,11 +103,11 @@
       <ul>
         {#each localizedAttributes as attr, i}
           <li>
-            <span class="pattern">{attr.attributePattern}</span>
+            <span class="pattern">{attr.attributePatterns.join(', ')}</span>
             <span class="locales">
               Locales: {attr.locales.join(', ')}
             </span>
-            <button on:click={() => removeLocalizedAttribute(i)} class="remove">
+            <button onclick={() => removeLocalizedAttribute(i)} class="remove">
               Remove
             </button>
           </li>
@@ -125,11 +133,12 @@
       <label>Select Locales:</label>
       <div class="locale-grid">
         {#each availableLocales as locale}
-          <label class="locale-checkbox">
+          <label class="locale-checkbox" for="locale-{locale}">
             <input
+              id="locale-{locale}"
               type="checkbox"
               checked={selectedLocales.includes(locale)}
-              on:change={() => toggleLocale(locale)}
+              onchange={() => toggleLocale(locale)}
             />
             <span>{locale}</span>
           </label>
@@ -138,7 +147,7 @@
     </div>
 
     <button
-      on:click={addLocalizedAttribute}
+      onclick={addLocalizedAttribute}
       disabled={!newAttributePattern || selectedLocales.length === 0}
       class="add-btn"
     >
@@ -148,7 +157,7 @@
 
   <div class="actions">
     <button
-      on:click={updateLocalizedAttributes}
+      onclick={updateLocalizedAttributes}
       disabled={loading}
       class="save-btn"
     >
