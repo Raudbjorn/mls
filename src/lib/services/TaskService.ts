@@ -39,9 +39,6 @@ export class TaskService {
   constructor(client: MeiliSearch, options: TaskServiceOptions = {}) {
     this.client = client;
     this.options = { ...DEFAULT_OPTIONS, ...options };
-
-    // Start cleanup interval
-    this.startCleanupInterval();
   }
 
   /**
@@ -74,6 +71,9 @@ export class TaskService {
    * Add an existing task to tracking
    */
   async addTask(taskUid: number): Promise<void> {
+    // Start cleanup interval lazily when first task is added
+    this.ensureCleanupInterval();
+
     // Fetch initial status immediately
     try {
       const task = await this.client.getTask(taskUid);
@@ -83,8 +83,9 @@ export class TaskService {
       if (["enqueued", "processing"].includes(task.status)) {
         this.startPollingForTask(taskUid);
       } else {
-        // Task already completed, record completion time
+        // Task already completed, record completion time and notify
         this.completedAt.set(taskUid, Date.now());
+        this.notifyCompletion(task as MeiliTask);
       }
     } catch (e) {
       console.error(`Failed to fetch initial task ${taskUid}`, e);
@@ -163,11 +164,18 @@ export class TaskService {
     });
   }
 
-  private startCleanupInterval(): void {
-    // Run cleanup every minute
-    this.cleanupInterval = setInterval(() => {
-      this.cleanupCompletedTasks();
-    }, 60 * 1000);
+  private ensureCleanupInterval(): void {
+    // Start cleanup interval lazily when first task is added
+    if (this.cleanupInterval === null) {
+      this.cleanupInterval = setInterval(() => {
+        this.cleanupCompletedTasks();
+        // Stop cleanup interval if no tasks remain
+        if (this.tasks.size === 0 && this.cleanupInterval !== null) {
+          clearInterval(this.cleanupInterval);
+          this.cleanupInterval = null;
+        }
+      }, 60 * 1000);
+    }
   }
 
   private cleanupCompletedTasks(): void {

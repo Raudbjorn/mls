@@ -252,6 +252,31 @@ describe('TaskService', () => {
 
       service.destroy();
     });
+
+    it('should call callback for already-completed tasks', async () => {
+      const completedTask = {
+        taskUid: 1,
+        status: 'succeeded',
+        type: 'test',
+        enqueuedAt: new Date().toISOString(),
+      };
+
+      const client = {
+        getTask: vi.fn().mockResolvedValue(completedTask),
+      };
+
+      const service = new TaskService(client as any);
+
+      const callback = vi.fn();
+      service.onTaskComplete(callback);
+
+      await service.addTask(1);
+
+      // Callback should be called immediately for already-completed task
+      expect(callback).toHaveBeenCalledWith(completedTask);
+
+      service.destroy();
+    });
   });
 
   describe('cleanup', () => {
