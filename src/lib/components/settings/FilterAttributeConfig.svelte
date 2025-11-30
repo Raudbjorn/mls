@@ -40,13 +40,13 @@
             {#each filterableAttributes as attr}
                 <span class="tag">
                     {attr} 
-                    <button on:click={() => removeFilterable(attr)}>×</button>
+                    <button onclick={() => removeFilterable(attr)}>×</button>
                 </span>
             {/each}
         </div>
         <div class="add-input">
             <input type="text" bind:value={newFilterable} placeholder="Attribute name" />
-            <button on:click={addFilterable}>Add</button>
+            <button onclick={addFilterable}>Add</button>
         </div>
     </div>
 
@@ -57,13 +57,13 @@
             {#each sortableAttributes as attr}
                 <span class="tag">
                     {attr} 
-                    <button on:click={() => removeSortable(attr)}>×</button>
+                    <button onclick={() => removeSortable(attr)}>×</button>
                 </span>
             {/each}
         </div>
         <div class="add-input">
             <input type="text" bind:value={newSortable} placeholder="Attribute name" />
-            <button on:click={addSortable}>Add</button>
+            <button onclick={addSortable}>Add</button>
         </div>
     </div>
 </div>

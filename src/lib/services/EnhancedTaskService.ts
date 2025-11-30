@@ -3,7 +3,7 @@
  * Implements EnqueuedTaskPromise pattern, batch waiting, and intelligent polling
  */
 
-import { MeiliSearch, type Task, type EnqueuedTask } from 'meilisearch';
+import { MeiliSearch, type Task, type EnqueuedTask, TaskTypes, TaskStatus } from 'meilisearch';
 import { MlsTaskTimeoutError } from '../errors';
 import type { MeiliTask } from '../types/meilisearch';
 
@@ -74,7 +74,7 @@ export class EnhancedTaskService {
 
       await this.sleep(currentInterval);
 
-      // Exponential backoff with cap
+      // Geometric (multiplicative) backoff with 1.5x multiplier and cap
       currentInterval = Math.min(currentInterval * 1.5, maxInterval);
     }
   }
@@ -87,25 +87,25 @@ export class EnhancedTaskService {
     taskUidsOrEnqueuedTasks: Iterable<number | EnqueuedTask>,
     options?: WaitOptions
   ): AsyncGenerator<Task, void, undefined> {
-    const taskPromises = Array.from(taskUidsOrEnqueuedTasks).map(task =>
-      this.waitForTask(task, options)
-    );
+    // Create array of {promise, index} wrappers
+    const pending = Array.from(taskUidsOrEnqueuedTasks).map((task, index) => ({
+      promise: this.waitForTask(task, options).then(result => ({ index, result })),
+      index
+    }));
 
-    // Create a set of wrapper promises that remove themselves when resolved
-    const pending = new Set<Promise<{ index: number, result: Task }>>();
+    // Continue while we have pending tasks
+    while (pending.length > 0) {
+      // Race all pending promises
+      const completed = await Promise.race(pending.map(p => p.promise));
 
-    taskPromises.forEach((p, i) => {
-      // Create a wrapper promise that removes itself from the set when resolved
-      const wrapper = p.then(result => {
-        pending.delete(wrapper);
-        return { index: i, result };
-      });
-      pending.add(wrapper);
-    });
+      // Yield the completed result
+      yield completed.result;
 
-    while (pending.size > 0) {
-      const { result } = await Promise.race(pending);
-      yield result;
+      // Remove the completed promise from pending array
+      const completedIndex = pending.findIndex(p => p.index === completed.index);
+      if (completedIndex !== -1) {
+        pending.splice(completedIndex, 1);
+      }
     }
   }
 
@@ -130,34 +130,12 @@ export class EnhancedTaskService {
    */
   async cancelTasks(params?: {
     uids?: number[];
-    statuses?: string[];
-    types?: string[];
+    statuses?: TaskStatus[];
+    types?: TaskTypes[];
     indexUids?: string[];
   }): Promise<EnqueuedTask> {
-    // Check if SDK supports cancelTasks
-    if (typeof (this.client as any).cancelTasks === 'function') {
-      return this.client.cancelTasks(params as any);
-    }
-
-    // Fallback to manual implementation for older SDK versions
-    const queryParams = new URLSearchParams();
-
-    if (params?.uids) {
-      queryParams.set('uids', params.uids.join(','));
-    }
-    if (params?.statuses) {
-      queryParams.set('statuses', params.statuses.join(','));
-    }
-    if (params?.types) {
-      queryParams.set('types', params.types.join(','));
-    }
-    if (params?.indexUids) {
-      queryParams.set('indexUids', params.indexUids.join(','));
-    }
-
-    return await (this.client as any).httpRequest.post(
-      `/tasks/cancel?${queryParams.toString()}`
-    );
+    // Use the SDK's cancelTasks method directly
+    return await this.client.cancelTasks(params || {});
   }
 
   /**
@@ -165,38 +143,17 @@ export class EnhancedTaskService {
    */
   async deleteTasks(params?: {
     uids?: number[];
-    statuses?: string[];
-    types?: string[];
+    statuses?: TaskStatus[];
+    types?: TaskTypes[];
     indexUids?: string[];
   }): Promise<EnqueuedTask> {
-    // Check if SDK supports deleteTasks
-    if (typeof (this.client as any).deleteTasks === 'function') {
-      return this.client.deleteTasks(params as any);
-    }
-
-    // Fallback to manual implementation for older SDK versions
-    const queryParams = new URLSearchParams();
-
-    if (params?.uids) {
-      queryParams.set('uids', params.uids.join(','));
-    }
-    if (params?.statuses) {
-      queryParams.set('statuses', params.statuses.join(','));
-    }
-    if (params?.types) {
-      queryParams.set('types', params.types.join(','));
-    }
-    if (params?.indexUids) {
-      queryParams.set('indexUids', params.indexUids.join(','));
-    }
-
-    return await (this.client as any).httpRequest.delete(
-      `/tasks?${queryParams.toString()}`
-    );
+    // Use the SDK's deleteTasks method directly
+    return await this.client.deleteTasks(params || {});
   }
 
   /**
-   * Gets detailed task statistics
+   * Gets detailed task statistics with pagination support
+   * Fixes the 1000 task limit by implementing pagination
    */
   async getTaskStats(): Promise<{
     totalTasks: number;
@@ -204,25 +161,59 @@ export class EnhancedTaskService {
     types: Record<string, number>;
     indexes: Record<string, number>;
   }> {
-    const tasks = await this.client.getTasks({ limit: 1000 });
-
     const stats = {
-      totalTasks: tasks.total,
+      totalTasks: 0,
       statuses: {} as Record<string, number>,
       types: {} as Record<string, number>,
       indexes: {} as Record<string, number>
     };
 
-    for (const task of tasks.results) {
-      // Count by status
-      stats.statuses[task.status] = (stats.statuses[task.status] || 0) + 1;
+    const limit = 100; // Process in chunks of 100
+    let from = 0;
+    let hasMore = true;
+    const seenTaskUids = new Set<number>();
 
-      // Count by type
-      stats.types[task.type] = (stats.types[task.type] || 0) + 1;
+    // Pagination loop to handle more than 1000 tasks
+    while (hasMore) {
+      const response = await this.client.getTasks({
+        limit,
+        from
+      });
 
-      // Count by index
-      if (task.indexUid) {
-        stats.indexes[task.indexUid] = (stats.indexes[task.indexUid] || 0) + 1;
+      // Update total count
+      stats.totalTasks = response.total;
+
+      // Process each task
+      for (const task of response.results) {
+        // Skip if we've already seen this task (shouldn't happen but being safe)
+        if (seenTaskUids.has(task.uid)) {
+          continue;
+        }
+        seenTaskUids.add(task.uid);
+
+        // Count by status
+        stats.statuses[task.status] = (stats.statuses[task.status] || 0) + 1;
+
+        // Count by type
+        stats.types[task.type] = (stats.types[task.type] || 0) + 1;
+
+        // Count by index
+        if (task.indexUid) {
+          stats.indexes[task.indexUid] = (stats.indexes[task.indexUid] || 0) + 1;
+        }
+      }
+
+      // Check if there are more results
+      hasMore = response.next !== null;
+
+      if (hasMore && response.next) {
+        // Update 'from' for the next iteration
+        from = response.next;
+      }
+
+      // Also check if we've reached the total
+      if (response.total && seenTaskUids.size >= response.total) {
+        hasMore = false;
       }
     }
 

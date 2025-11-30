@@ -129,7 +129,7 @@
                 </div>
             </div>
 
-            <button on:click={createKey} class="create-btn">Generate Key</button>
+            <button onclick={createKey} class="create-btn">Generate Key</button>
         </div>
 
         <div class="keys-list">
@@ -161,7 +161,7 @@
                                 </td>
                                 <td>{key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : 'Never'}</td>
                                 <td>
-                                    <button on:click={() => deleteKey(key.uid)} class="delete-btn">Revoke</button>
+                                    <button onclick={() => deleteKey(key.uid)} class="delete-btn">Revoke</button>
                                 </td>
                             </tr>
                         {/each}

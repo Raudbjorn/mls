@@ -144,7 +144,7 @@
                         <div class="remote-key">
                             Key: {remote.searchApiKey ? '••••••••' : 'None'}
                         </div>
-                        <button class="delete-btn" on:click={() => removeRemote(remote.name)} disabled={loading}>
+                        <button class="delete-btn" onclick={() => removeRemote(remote.name)} disabled={loading}>
                             Remove
                         </button>
                     </div>
@@ -174,7 +174,7 @@
             <input type="password" bind:value={newRemoteKey} placeholder="Search API Key" />
         </div>
 
-        <button on:click={addRemote} disabled={loading || !newRemoteUrl || !newRemoteName}>
+        <button onclick={addRemote} disabled={loading || !newRemoteUrl || !newRemoteName}>
             {loading ? 'Updating...' : 'Add Remote'}
         </button>
     </div>

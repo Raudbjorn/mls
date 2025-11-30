@@ -73,10 +73,10 @@
         <div class="warning">Admin rights required to manage backups.</div>
     {:else}
         <div class="actions">
-            <button class="action-btn dump" on:click={createDump} disabled={loading}>
+            <button class="action-btn dump" onclick={createDump} disabled={loading}>
                 Create Dump
             </button>
-            <button class="action-btn snapshot" on:click={createSnapshot} disabled={loading}>
+            <button class="action-btn snapshot" onclick={createSnapshot} disabled={loading}>
                 Create Snapshot
             </button>
         </div>

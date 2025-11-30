@@ -57,6 +57,14 @@
         if (!ms) return '-';
         return `${(ms / 1000).toFixed(2)}s`;
     }
+
+    function togglePolling() {
+        if (pollInterval) {
+            stopPolling();
+        } else {
+            startPolling();
+        }
+    }
 </script>
 
 <div class="batch-monitor">
@@ -66,7 +74,7 @@
             {#if loading && !batches.length}
                 <span>Loading...</span>
             {/if}
-            <button on:click={pollInterval ? stopPolling : startPolling}>
+            <button onclick={togglePolling}>
                 {pollInterval ? 'Pause' : 'Resume'}
             </button>
         </div>

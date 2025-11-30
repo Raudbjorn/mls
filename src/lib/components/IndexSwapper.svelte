@@ -1,7 +1,7 @@
 <script lang="ts">
     import { getContext } from 'svelte';
     import type { MeiliContext } from '../types/meilisearch';
-    import type { TaskService } from '../services/TaskService.svelte.ts';
+    import type { TaskService } from '../services/TaskService';
 
     const { client, hasAdminRights } = getContext<MeiliContext>('meili');
     const taskService = getContext<TaskService>('taskService');
@@ -61,8 +61,8 @@
         <div class="error">{error}</div>
     {/if}
 
-    <button 
-        on:click={swapIndexes} 
+    <button
+        onclick={swapIndexes}
         disabled={isSwapping || !hasAdminRights || !indexA || !indexB}
         class="swap-btn"
     >

@@ -1,15 +1,15 @@
 <script lang="ts">
   import { onMount, getContext } from 'svelte';
   import type { MeiliContext } from '../../types/meilisearch';
-  import type { Index } from 'meilisearch';
+  import { createExtendedApiClient, type LocalizedAttributesSettings } from '../../utils/extended-api';
 
   export let indexUid: string;
 
   const { client } = getContext<MeiliContext>('meili');
-  const index = client.index(indexUid);
+  const api = createExtendedApiClient(client);
 
   interface LocalizedAttribute {
-    attributePattern: string;
+    attributePatterns: string[];
     locales: string[];
   }
 
@@ -30,10 +30,8 @@
     loading = true;
     error = null;
     try {
-      const settings = await (index as any).httpRequest.get(
-        `/indexes/${indexUid}/settings/localized-attributes`
-      );
-      localizedAttributes = settings || [];
+      const settings = await api.getLocalizedAttributes(indexUid);
+      localizedAttributes = settings.localizedAttributes || [];
     } catch (e: any) {
       error = e.message;
     } finally {
@@ -45,10 +43,10 @@
     loading = true;
     error = null;
     try {
-      await (index as any).httpRequest.put(
-        `/indexes/${indexUid}/settings/localized-attributes`,
-        localizedAttributes
-      );
+      const settings: LocalizedAttributesSettings = {
+        localizedAttributes: localizedAttributes.length > 0 ? localizedAttributes : null
+      };
+      await api.updateLocalizedAttributes(indexUid, settings);
       await fetchLocalizedAttributes();
     } catch (e: any) {
       error = e.message;
@@ -58,9 +56,10 @@
   }
 
   function addLocalizedAttribute() {
+    error = null;
     if (newAttributePattern && selectedLocales.length > 0) {
       localizedAttributes = [...localizedAttributes, {
-        attributePattern: newAttributePattern,
+        attributePatterns: [newAttributePattern],
         locales: [...selectedLocales]
       }];
       newAttributePattern = '';
@@ -104,7 +103,7 @@
       <ul>
         {#each localizedAttributes as attr, i}
           <li>
-            <span class="pattern">{attr.attributePattern}</span>
+            <span class="pattern">{attr.attributePatterns.join(', ')}</span>
             <span class="locales">
               Locales: {attr.locales.join(', ')}
             </span>

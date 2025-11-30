@@ -75,18 +75,18 @@
     
     <div class="search-controls">
         <div class="input-row">
-            <input 
-                type="text" 
-                bind:value={query} 
-                placeholder="Search query..." 
-                on:input={() => {
+            <input
+                type="text"
+                bind:value={query}
+                placeholder="Search query..."
+                oninput={() => {
                     // Debounce search
                     if (timer) clearTimeout(timer);
                     timer = setTimeout(search, 300);
                 }}
                 class="search-input"
             />
-            <button on:click={search} disabled={isSearching}>
+            <button onclick={search} disabled={isSearching}>
                 {isSearching ? 'Searching...' : 'Search'}
             </button>
         </div>

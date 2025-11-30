@@ -6,7 +6,7 @@ export { default as MeiliTaskWatcher } from './components/MeiliTaskWatcher.svelt
 // Administrative components
 export { default as BackupManager } from './components/BackupManager.svelte';
 export { default as BatchMonitor } from './components/BatchMonitor.svelte';
-export { default as ExperimentalFeatures } from './components/ExperimentalFeatures.svelte';
+export { default as ExperimentalFeaturesComponent } from './components/ExperimentalFeatures.svelte';
 export { default as HybridSearchTester } from './components/HybridSearchTester.svelte';
 export { default as IndexSwapper } from './components/IndexSwapper.svelte';
 export { default as KeyManager } from './components/KeyManager.svelte';
@@ -27,6 +27,7 @@ export { default as LocalizedAttributesConfig } from './components/settings/Loca
 
 // Services
 export { TaskService } from './services/TaskService';
+export type { TaskServiceOptions, TaskCompletionCallback } from './services/TaskService';
 export { EnhancedTaskService } from './services/EnhancedTaskService';
 export { BatchService } from './services/BatchService';
 export { TypedIndex } from './services/TypedIndex';
@@ -35,6 +36,14 @@ export { TypedIndex } from './services/TypedIndex';
 export { generateTenantToken, validateTenantToken, decodeTenantToken } from './utils/token';
 export { createApiClient } from './utils/api';
 export { createExtendedApiClient } from './utils/extended-api';
+export type {
+  ApiClient,
+  ClientConfig,
+  WebhookListResponse,
+  BatchListResponse,
+  CreateWebhookPayload,
+  UpdateNetworkPayload
+} from './utils/api';
 
 // Error classes
 export {

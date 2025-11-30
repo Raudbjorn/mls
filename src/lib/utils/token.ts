@@ -1,12 +1,13 @@
 /**
  * Tenant token generation utilities
- * Provides JWT token generation for restricted access to MeiliSearch
+ * Delegates to MeiliSearch SDK for secure token generation
  */
 
+import type { MeiliSearch } from 'meilisearch';
 import { MlsTokenError } from '../errors';
 
 export interface TenantTokenOptions {
-  apiKey: string;
+  client: MeiliSearch;
   apiKeyUid: string;
   searchRules?: SearchRules;
   expiresAt?: Date;
@@ -26,10 +27,44 @@ export interface JWTPayload {
 }
 
 /**
+ * Simple Base64URL decode for token validation
+ * Works in both Node.js and browser environments
+ */
+function base64UrlDecode(str: string): string {
+  // First try Node.js Buffer (works in Node.js 14+)
+  if (typeof globalThis !== 'undefined' && typeof globalThis.Buffer !== 'undefined') {
+    return Buffer.from(str, 'base64url').toString();
+  }
+
+  // Try Node.js require (for older Node or when Buffer isn't on globalThis)
+  if (typeof require !== 'undefined') {
+    try {
+      const buffer = require('buffer').Buffer;
+      return buffer.from(str, 'base64url').toString();
+    } catch {
+      // Fall through to next method
+    }
+  }
+
+  // Try browser's atob
+  if (typeof atob !== 'undefined') {
+    const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    // Add padding if needed (base64 requires padding to be a multiple of 4)
+    const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+    return atob(padded);
+  }
+
+  // If no method is available, provide a clear error message
+  throw new MlsTokenError(
+    'Base64 decoding is not available in this environment. ' +
+    'Token validation requires either Node.js Buffer API or browser atob() function. ' +
+    'Consider using the MeiliSearch client\'s built-in validation instead.'
+  );
+}
+
+/**
  * Generates a tenant token for restricted access to MeiliSearch
- *
- * Note: Prefer using the MeiliSearch SDK's client.generateTenantToken() method when available.
- * This implementation is provided as a fallback for environments where the SDK method is not accessible.
+ * Uses the official SDK method for secure token generation
  *
  * @param options - Token generation options
  * @returns JWT token string
@@ -37,7 +72,7 @@ export interface JWTPayload {
  * @example
  * ```ts
  * const token = await generateTenantToken({
- *   apiKey: 'your-api-key',
+ *   client: meiliClient,
  *   apiKeyUid: 'key-uid',
  *   searchRules: {
  *     'movies': { filter: 'category = "public"' }
@@ -49,126 +84,69 @@ export interface JWTPayload {
 export async function generateTenantToken(
   options: TenantTokenOptions
 ): Promise<string> {
-  // Check for browser environment
-  if (typeof btoa === 'undefined') {
-    throw new MlsTokenError('btoa is not available. This function requires a browser environment or a polyfill.');
+  // Input validation
+  if (!options.client) {
+    throw new MlsTokenError('MeiliSearch client is required');
   }
-  if (typeof atob === 'undefined') {
-    throw new MlsTokenError('atob is not available. This function requires a browser environment or a polyfill.');
+
+  if (!options.apiKeyUid || typeof options.apiKeyUid !== 'string' || options.apiKeyUid.trim().length === 0) {
+    throw new MlsTokenError('Invalid API key UID: must be a non-empty string');
   }
-  if (typeof crypto === 'undefined' || typeof crypto.subtle === 'undefined') {
-    throw new MlsTokenError('crypto.subtle is not available. This function requires a browser environment with Web Crypto API support.');
+
+  if (options.expiresAt) {
+    if (!(options.expiresAt instanceof Date)) {
+      throw new MlsTokenError('Invalid expiresAt: must be a Date object');
+    }
+    if (options.expiresAt.getTime() <= Date.now()) {
+      throw new MlsTokenError('Invalid expiresAt: expiration date must be in the future');
+    }
+  }
+
+  if (options.searchRules && !Array.isArray(options.searchRules) && typeof options.searchRules !== 'object') {
+    throw new MlsTokenError('Invalid searchRules: must be an object or array');
   }
 
   try {
-    // Base64URL encode helper
-    const base64UrlEncode = (str: string): string => {
-      return btoa(str)
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '');
-    };
-
-    // Create header
-    const header = {
-      alg: 'HS256',
-      typ: 'JWT'
-    };
-
-    // Create payload
-    const payload: JWTPayload = {
-      apiKeyUid: options.apiKeyUid,
-      searchRules: options.searchRules || ['*'],
-      iat: Math.floor(Date.now() / 1000)
-    };
-
-    if (options.expiresAt) {
-      payload.exp = Math.floor(options.expiresAt.getTime() / 1000);
-    }
-
-    // Encode header and payload
-    const encodedHeader = base64UrlEncode(JSON.stringify(header));
-    const encodedPayload = base64UrlEncode(JSON.stringify(payload));
-
-    // Create signature using Web Crypto API
-    const message = `${encodedHeader}.${encodedPayload}`;
-    const encoder = new TextEncoder();
-    const data = encoder.encode(message);
-    const keyData = encoder.encode(options.apiKey);
-
-    // Import the key
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      keyData,
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['sign']
+    // Use the SDK's generateTenantToken method
+    const token = await options.client.generateTenantToken(
+      options.apiKeyUid,
+      options.searchRules || ['*'],
+      {
+        expiresAt: options.expiresAt
+      }
     );
 
-    // Sign the message
-    const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
-    const encodedSignature = base64UrlEncode(
-      String.fromCharCode(...new Uint8Array(signature))
-    );
-
-    // Combine to create JWT
-    return `${message}.${encodedSignature}`;
+    return token;
   } catch (error) {
     throw new MlsTokenError('Failed to generate tenant token', error);
   }
 }
 
 /**
- * Validates a tenant token
+ * Validates a tenant token by checking expiration
+ * Note: For signature validation, create a new token with the same parameters
+ * and compare, or use MeiliSearch's built-in validation when making requests
  *
  * @param token - JWT token to validate
- * @param apiKey - API key used to sign the token
- * @returns True if valid, false otherwise
+ * @returns True if not expired, false otherwise
  */
-export async function validateTenantToken(
-  token: string,
-  apiKey: string
-): Promise<boolean> {
-  // Check for browser environment
-  if (typeof atob === 'undefined') {
-    throw new MlsTokenError('atob is not available. This function requires a browser environment or a polyfill.');
-  }
-  if (typeof crypto === 'undefined' || typeof crypto.subtle === 'undefined') {
-    throw new MlsTokenError('crypto.subtle is not available. This function requires a browser environment with Web Crypto API support.');
-  }
-
+export function validateTenantToken(token: string): boolean {
   try {
-    const [encodedHeader, encodedPayload, encodedSignature] = token.split('.');
+    const [, encodedPayload] = token.split('.');
 
-    if (!encodedHeader || !encodedPayload || !encodedSignature) {
+    if (!encodedPayload) {
       return false;
     }
 
-    // Recreate the message
-    const message = `${encodedHeader}.${encodedPayload}`;
-    const encoder = new TextEncoder();
-    const data = encoder.encode(message);
-    const keyData = encoder.encode(apiKey);
+    // Check token expiration
+    const payload = JSON.parse(base64UrlDecode(encodedPayload)) as JWTPayload;
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      return false; // Token has expired
+    }
 
-    // Import the key
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      keyData,
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['verify']
-    );
-
-    // Decode the signature
-    const signatureBytes = Uint8Array.from(
-      atob(encodedSignature.replace(/-/g, '+').replace(/_/g, '/')),
-      c => c.charCodeAt(0)
-    );
-
-    // Verify the signature
-    return await crypto.subtle.verify('HMAC', cryptoKey, signatureBytes, data);
+    return true; // Token structure is valid and not expired
   } catch {
-    return false;
+    return false; // Invalid token format
   }
 }
 
@@ -179,19 +157,14 @@ export async function validateTenantToken(
  * @returns Decoded token payload
  */
 export function decodeTenantToken(token: string): JWTPayload {
-  // Check for browser environment
-  if (typeof atob === 'undefined') {
-    throw new MlsTokenError('atob is not available. This function requires a browser environment or a polyfill.');
-  }
-
   try {
     const [, encodedPayload] = token.split('.');
     if (!encodedPayload) {
       throw new Error('Invalid token format');
     }
 
-    const payload = atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/'));
-    return JSON.parse(payload);
+    const payload = base64UrlDecode(encodedPayload);
+    return JSON.parse(payload) as JWTPayload;
   } catch (error) {
     throw new MlsTokenError('Failed to decode tenant token', error);
   }

@@ -136,7 +136,7 @@
                         <div><strong>Headers:</strong> {JSON.stringify(webhook.headers)}</div>
                     {/if}
                 </div>
-                <button class="delete-btn" on:click={() => deleteWebhook(webhook.id)} disabled={loading}>
+                <button class="delete-btn" onclick={() => deleteWebhook(webhook.id)} disabled={loading}>
                     Delete
                 </button>
             </div>
@@ -159,10 +159,10 @@
             <div class="events-grid">
                 {#each availableEvents as event}
                     <label class="checkbox-label">
-                        <input 
-                            type="checkbox" 
-                            checked={newEvents.includes(event)} 
-                            on:change={() => toggleEvent(event)}
+                        <input
+                            type="checkbox"
+                            checked={newEvents.includes(event)}
+                            onchange={() => toggleEvent(event)}
                         />
                         {event}
                     </label>
@@ -172,11 +172,11 @@
 
         <div class="form-group">
             <label>Headers (JSON)</label>
-            <textarea 
-                bind:value={newHeaders} 
-                placeholder='{"Authorization": "Bearer token"}'
+            <textarea
+                bind:value={newHeaders}
+                placeholder="JSON object for headers"
                 rows="3"
-            ></textarea>
+            />
         </div>
 
         <button on:click={createWebhook} disabled={loading || !newUrl}>
