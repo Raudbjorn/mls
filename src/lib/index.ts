@@ -23,13 +23,19 @@ export { default as SearchDisplayConfig } from './components/settings/SearchDisp
 export { default as SynonymManager } from './components/settings/SynonymManager.svelte';
 export { default as TypoToleranceEditor } from './components/settings/TypoToleranceEditor.svelte';
 export { default as VectorIndexConfig } from './components/settings/VectorIndexConfig.svelte';
+export { default as LocalizedAttributesConfig } from './components/settings/LocalizedAttributesConfig.svelte';
 
 // Services
 export { TaskService } from './services/TaskService';
 export type { TaskServiceOptions, TaskCompletionCallback } from './services/TaskService';
+export { EnhancedTaskService } from './services/EnhancedTaskService';
+export { BatchService } from './services/BatchService';
+export { TypedIndex } from './services/TypedIndex';
 
 // Utilities
+export { generateTenantToken, validateTenantToken, decodeTenantToken } from './utils/token';
 export { createApiClient } from './utils/api';
+export { createExtendedApiClient } from './utils/extended-api';
 export type {
   ApiClient,
   ClientConfig,
@@ -38,6 +44,16 @@ export type {
   CreateWebhookPayload,
   UpdateNetworkPayload
 } from './utils/api';
+
+// Error classes
+export {
+  MlsError,
+  MlsApiError,
+  MlsTaskTimeoutError,
+  MlsRequestTimeoutError,
+  MlsBatchError,
+  MlsTokenError
+} from './errors';
 
 // Types
 export type {
@@ -54,3 +70,42 @@ export type {
   RemoteConfig,
   Network
 } from './types/meilisearch';
+
+// Export additional types from new utilities
+export type {
+  TenantTokenOptions,
+  SearchRules,
+  SearchRule
+} from './utils/token';
+
+export type {
+  WaitOptions,
+  EnqueuedTaskPromise
+} from './services/EnhancedTaskService';
+
+export type {
+  BatchOptions,
+  BatchResult
+} from './services/BatchService';
+
+export type {
+  TypedDocument,
+  IndexConfig
+} from './services/TypedIndex';
+
+export type {
+  ExtendedApiClient,
+  ChatWorkspaceSettings,
+  ChatMessage,
+  ChatCompletionResponse,
+  ExportParams,
+  MultiSearchParams,
+  MultiSearchResponse,
+  FederatedSearchParams,
+  FederatedSearchResponse,
+  SimilarDocumentsParams,
+  FacetSearchParams,
+  FacetSearchResponse,
+  DocumentEdit,
+  ExperimentalFeatures
+} from './utils/extended-api';
