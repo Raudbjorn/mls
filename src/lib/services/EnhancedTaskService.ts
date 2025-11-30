@@ -74,7 +74,7 @@ export class EnhancedTaskService {
 
       await this.sleep(currentInterval);
 
-      // Exponential backoff with cap
+      // Geometric (multiplicative) backoff with 1.5x multiplier and cap
       currentInterval = Math.min(currentInterval * 1.5, maxInterval);
     }
   }

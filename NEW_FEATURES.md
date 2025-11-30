@@ -11,10 +11,16 @@ This document describes the new features added to MLS (MeiliSearch Library for S
 Generate JWT tokens for restricted access to MeiliSearch indexes:
 
 ```typescript
+import { MeiliSearch } from 'meilisearch';
 import { generateTenantToken } from 'mls';
 
+const meiliClient = new MeiliSearch({
+  host: 'https://your-meilisearch-instance.com',
+  apiKey: 'your-api-key'
+});
+
 const token = await generateTenantToken({
-  apiKey: 'your-api-key',
+  client: meiliClient,
   apiKeyUid: 'key-uid',
   searchRules: {
     'movies': { filter: 'category = "public"' },
@@ -24,7 +30,7 @@ const token = await generateTenantToken({
 });
 
 // Validate a token
-const isValid = await validateTenantToken(token, 'your-api-key');
+const isValid = await validateTenantToken(token);
 
 // Decode token payload
 const payload = decodeTenantToken(token);

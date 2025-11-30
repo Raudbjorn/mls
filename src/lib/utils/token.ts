@@ -37,7 +37,7 @@ function base64UrlDecode(str: string): string {
   } else if (typeof atob !== 'undefined') {
     // Browser environment
     const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+    const padded = base64 + '='.repeat(4 - base64.length % 4);
     return atob(padded);
   } else {
     throw new MlsTokenError('No Base64 decoding method available in this environment');
