@@ -3,7 +3,7 @@
  * Implements EnqueuedTaskPromise pattern, batch waiting, and intelligent polling
  */
 
-import { MeiliSearch, type Task, type EnqueuedTask } from 'meilisearch';
+import { MeiliSearch, type Task, type EnqueuedTask, TaskTypes, TaskStatus } from 'meilisearch';
 import { MlsTaskTimeoutError } from '../errors';
 import type { MeiliTask } from '../types/meilisearch';
 
@@ -129,30 +129,12 @@ export class EnhancedTaskService {
    */
   async cancelTasks(params?: {
     uids?: number[];
-    statuses?: string[];
-    types?: string[];
+    statuses?: TaskStatus[];
+    types?: TaskTypes[];
     indexUids?: string[];
   }): Promise<EnqueuedTask> {
-    // Build query string
-    const queryParams = new URLSearchParams();
-
-    if (params?.uids) {
-      queryParams.set('uids', params.uids.join(','));
-    }
-    if (params?.statuses) {
-      queryParams.set('statuses', params.statuses.join(','));
-    }
-    if (params?.types) {
-      queryParams.set('types', params.types.join(','));
-    }
-    if (params?.indexUids) {
-      queryParams.set('indexUids', params.indexUids.join(','));
-    }
-
-    return await (this.client as any).httpRequest.post(
-          `/tasks/cancel?${queryParams.toString()}`
-        );
-
+    // Use the SDK's cancelTasks method directly
+    return await this.client.cancelTasks(params || {});
   }
 
   /**
@@ -160,30 +142,12 @@ export class EnhancedTaskService {
    */
   async deleteTasks(params?: {
     uids?: number[];
-    statuses?: string[];
-    types?: string[];
+    statuses?: TaskStatus[];
+    types?: TaskTypes[];
     indexUids?: string[];
   }): Promise<EnqueuedTask> {
-    // Build query string
-    const queryParams = new URLSearchParams();
-
-    if (params?.uids) {
-      queryParams.set('uids', params.uids.join(','));
-    }
-    if (params?.statuses) {
-      queryParams.set('statuses', params.statuses.join(','));
-    }
-    if (params?.types) {
-      queryParams.set('types', params.types.join(','));
-    }
-    if (params?.indexUids) {
-      queryParams.set('indexUids', params.indexUids.join(','));
-    }
-
-    return await (this.client as any).httpRequest.delete(
-          `/tasks?${queryParams.toString()}`
-        );
-
+    // Use the SDK's deleteTasks method directly
+    return await this.client.deleteTasks(params || {});
   }
 
   /**

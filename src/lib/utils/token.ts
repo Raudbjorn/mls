@@ -18,6 +18,69 @@ export interface SearchRule {
   filter?: string;
 }
 
+export interface JWTPayload {
+  apiKeyUid: string;
+  searchRules: SearchRules;
+  iat: number;
+  exp?: number;
+}
+
+/**
+ * Environment-agnostic Base64URL encode function
+ */
+function base64UrlEncode(str: string): string {
+  if (typeof globalThis !== 'undefined' && globalThis.Buffer) {
+    // Node.js environment
+    return Buffer.from(str).toString('base64url');
+  } else if (typeof btoa !== 'undefined') {
+    // Browser environment
+    return btoa(str)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+  } else {
+    throw new MlsTokenError('No Base64 encoding method available in this environment');
+  }
+}
+
+/**
+ * Environment-agnostic Base64URL decode function
+ */
+function base64UrlDecode(str: string): string {
+  if (typeof globalThis !== 'undefined' && globalThis.Buffer) {
+    // Node.js environment
+    return Buffer.from(str, 'base64url').toString();
+  } else if (typeof atob !== 'undefined') {
+    // Browser environment
+    const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+    return atob(padded);
+  } else {
+    throw new MlsTokenError('No Base64 decoding method available in this environment');
+  }
+}
+
+/**
+ * Get crypto implementation for the current environment
+ */
+async function getCrypto(): Promise<Crypto> {
+  if (typeof globalThis !== 'undefined' && globalThis.crypto) {
+    // Browser or Node.js with global crypto
+    return globalThis.crypto;
+  } else if (typeof global !== 'undefined' && typeof global.crypto !== 'undefined') {
+    // Node.js with global crypto
+    return global.crypto;
+  } else {
+    // Try to import Node.js crypto module
+    try {
+      const { webcrypto } = await import('crypto');
+      return webcrypto as unknown as Crypto;
+    } catch {
+      throw new MlsTokenError('No crypto implementation available in this environment');
+    }
+  }
+}
+
 /**
  * Generates a tenant token for restricted access to MeiliSearch
  *
@@ -40,22 +103,14 @@ export async function generateTenantToken(
   options: TenantTokenOptions
 ): Promise<string> {
   try {
-    // Base64URL encode helper
-    const base64UrlEncode = (str: string): string => {
-      return btoa(str)
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '');
-    };
-
     // Create header
     const header = {
       alg: 'HS256',
       typ: 'JWT'
     };
 
-    // Create payload
-    const payload: any = {
+    // Create payload with proper typing
+    const payload: JWTPayload = {
       apiKeyUid: options.apiKeyUid,
       searchRules: options.searchRules || ['*'],
       iat: Math.floor(Date.now() / 1000)
@@ -75,6 +130,9 @@ export async function generateTenantToken(
     const data = encoder.encode(message);
     const keyData = encoder.encode(options.apiKey);
 
+    // Get crypto implementation for the current environment
+    const crypto = await getCrypto();
+
     // Import the key
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
@@ -86,9 +144,17 @@ export async function generateTenantToken(
 
     // Sign the message
     const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
-    const encodedSignature = base64UrlEncode(
-      String.fromCharCode(...new Uint8Array(signature))
-    );
+
+    // Convert signature to base64url
+    // In Node.js, we can use Buffer; in browser, we convert to string first
+    let encodedSignature: string;
+    if (typeof globalThis !== 'undefined' && globalThis.Buffer) {
+      encodedSignature = Buffer.from(signature).toString('base64url');
+    } else {
+      encodedSignature = base64UrlEncode(
+        String.fromCharCode(...new Uint8Array(signature))
+      );
+    }
 
     // Combine to create JWT
     return `${message}.${encodedSignature}`;
@@ -121,6 +187,9 @@ export async function validateTenantToken(
     const data = encoder.encode(message);
     const keyData = encoder.encode(apiKey);
 
+    // Get crypto implementation for the current environment
+    const crypto = await getCrypto();
+
     // Import the key
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
@@ -130,11 +199,16 @@ export async function validateTenantToken(
       ['verify']
     );
 
-    // Decode the signature
-    const signatureBytes = Uint8Array.from(
-      atob(encodedSignature.replace(/-/g, '+').replace(/_/g, '/')),
-      c => c.charCodeAt(0)
-    );
+    // Decode the signature based on environment
+    let signatureBytes: Uint8Array;
+    if (typeof globalThis !== 'undefined' && globalThis.Buffer) {
+      // Node.js environment
+      signatureBytes = new Uint8Array(Buffer.from(encodedSignature, 'base64url'));
+    } else {
+      // Browser environment
+      const decodedSignature = base64UrlDecode(encodedSignature);
+      signatureBytes = Uint8Array.from(decodedSignature, c => c.charCodeAt(0));
+    }
 
     // Verify the signature
     return await crypto.subtle.verify('HMAC', cryptoKey, signatureBytes, data);
@@ -149,15 +223,15 @@ export async function validateTenantToken(
  * @param token - JWT token to decode
  * @returns Decoded token payload
  */
-export function decodeTenantToken(token: string): any {
+export function decodeTenantToken(token: string): JWTPayload {
   try {
     const [, encodedPayload] = token.split('.');
     if (!encodedPayload) {
       throw new Error('Invalid token format');
     }
 
-    const payload = atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/'));
-    return JSON.parse(payload);
+    const payload = base64UrlDecode(encodedPayload);
+    return JSON.parse(payload) as JWTPayload;
   } catch (error) {
     throw new MlsTokenError('Failed to decode tenant token', error);
   }
