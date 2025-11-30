@@ -102,6 +102,28 @@ async function getCrypto(): Promise<Crypto> {
 export async function generateTenantToken(
   options: TenantTokenOptions
 ): Promise<string> {
+  // Input validation
+  if (!options.apiKey || typeof options.apiKey !== 'string' || options.apiKey.length < 8) {
+    throw new MlsTokenError('Invalid API key: must be a string with at least 8 characters');
+  }
+
+  if (!options.apiKeyUid || typeof options.apiKeyUid !== 'string' || options.apiKeyUid.trim().length === 0) {
+    throw new MlsTokenError('Invalid API key UID: must be a non-empty string');
+  }
+
+  if (options.expiresAt) {
+    if (!(options.expiresAt instanceof Date)) {
+      throw new MlsTokenError('Invalid expiresAt: must be a Date object');
+    }
+    if (options.expiresAt.getTime() <= Date.now()) {
+      throw new MlsTokenError('Invalid expiresAt: expiration date must be in the future');
+    }
+  }
+
+  if (options.searchRules && !Array.isArray(options.searchRules) && typeof options.searchRules !== 'object') {
+    throw new MlsTokenError('Invalid searchRules: must be an object or array');
+  }
+
   try {
     // Create header
     const header = {
@@ -151,9 +173,15 @@ export async function generateTenantToken(
     if (typeof globalThis !== 'undefined' && globalThis.Buffer) {
       encodedSignature = Buffer.from(signature).toString('base64url');
     } else {
-      encodedSignature = base64UrlEncode(
-        String.fromCharCode(...new Uint8Array(signature))
-      );
+      // Avoid String.fromCharCode stack size limitation for large arrays
+      const signatureArray = new Uint8Array(signature);
+      const chunkSize = 8192; // Safe chunk size to avoid stack overflow
+      let binaryString = '';
+      for (let i = 0; i < signatureArray.length; i += chunkSize) {
+        const chunk = signatureArray.slice(i, i + chunkSize);
+        binaryString += String.fromCharCode(...chunk);
+      }
+      encodedSignature = base64UrlEncode(binaryString);
     }
 
     // Combine to create JWT
@@ -179,6 +207,16 @@ export async function validateTenantToken(
 
     if (!encodedHeader || !encodedPayload || !encodedSignature) {
       return false;
+    }
+
+    // Check token expiration before verifying signature
+    try {
+      const payload = JSON.parse(base64UrlDecode(encodedPayload)) as JWTPayload;
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        return false; // Token has expired
+      }
+    } catch {
+      return false; // Invalid payload format
     }
 
     // Recreate the message

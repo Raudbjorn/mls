@@ -76,6 +76,7 @@ export class MlsBatchError extends MlsError {
     message: string,
     public failedBatches: number[],
     public successfulBatches: number[],
+    public errors?: Array<{ batchIndex: number; error: Error }>,
     cause?: unknown
   ) {
     super(message, cause);

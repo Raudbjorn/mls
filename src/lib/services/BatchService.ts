@@ -100,7 +100,8 @@ export class BatchService {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
-        Array.from({ length: result.successfulBatches }, (_, i) => i)
+        Array.from({ length: result.successfulBatches }, (_, i) => i),
+        result.errors
       );
     }
 
@@ -164,7 +165,8 @@ export class BatchService {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
-        Array.from({ length: result.successfulBatches }, (_, i) => i)
+        Array.from({ length: result.successfulBatches }, (_, i) => i),
+        result.errors
       );
     }
 
@@ -227,7 +229,8 @@ export class BatchService {
       throw new MlsBatchError(
         `${result.failedBatches} out of ${result.totalBatches} batches failed`,
         result.errors.map(e => e.batchIndex),
-        Array.from({ length: result.successfulBatches }, (_, i) => i)
+        Array.from({ length: result.successfulBatches }, (_, i) => i),
+        result.errors
       );
     }
 
@@ -251,11 +254,69 @@ export class BatchService {
     } = options;
 
     let batch: T[] = [];
+    let batchCount = 0;
+    const errors: Array<{ batchIndex: number; error: Error }> = [];
 
-    for await (const document of documentStream) {
-      batch.push(document);
+    try {
+      for await (const document of documentStream) {
+        batch.push(document);
 
-      if (batch.length >= batchSize) {
+        if (batch.length >= batchSize) {
+          try {
+            const task = operation === 'add'
+              ? await index.addDocuments(batch, { primaryKey })
+              : await index.updateDocuments(batch, { primaryKey });
+
+            if (waitForCompletion && this.taskService) {
+              await this.taskService.waitForTask(task.taskUid);
+            }
+
+            yield task;
+            batchCount++;
+          } catch (error) {
+            // Capture error but continue processing
+            errors.push({ batchIndex: batchCount, error: error as Error });
+            if (options.onBatchError) {
+              options.onBatchError(batchCount, error as Error);
+            }
+            batchCount++;
+          }
+          batch = [];
+        }
+      }
+    } catch (error) {
+      // Stream iteration error
+      const streamError = new MlsBatchError(
+        `Document stream processing failed: ${(error as Error).message}`,
+        errors.map(e => e.batchIndex),
+        Array.from({ length: batchCount - errors.length }, (_, i) => i),
+        errors,
+        error
+      );
+
+      // Try to process any remaining documents before throwing
+      if (batch.length > 0) {
+        try {
+          const task = operation === 'add'
+            ? await index.addDocuments(batch, { primaryKey })
+            : await index.updateDocuments(batch, { primaryKey });
+
+          if (waitForCompletion && this.taskService) {
+            await this.taskService.waitForTask(task.taskUid);
+          }
+
+          yield task;
+        } catch (finalError) {
+          errors.push({ batchIndex: batchCount, error: finalError as Error });
+        }
+      }
+
+      throw streamError;
+    }
+
+    // Process remaining documents
+    if (batch.length > 0) {
+      try {
         const task = operation === 'add'
           ? await index.addDocuments(batch, { primaryKey })
           : await index.updateDocuments(batch, { primaryKey });
@@ -265,46 +326,74 @@ export class BatchService {
         }
 
         yield task;
-        batch = [];
+      } catch (error) {
+        errors.push({ batchIndex: batchCount, error: error as Error });
+        if (options.onBatchError) {
+          options.onBatchError(batchCount, error as Error);
+        }
       }
     }
 
-    // Process remaining documents
-    if (batch.length > 0) {
-      const task = operation === 'add'
-        ? await index.addDocuments(batch, { primaryKey })
-        : await index.updateDocuments(batch, { primaryKey });
-
-      if (waitForCompletion && this.taskService) {
-        await this.taskService.waitForTask(task.taskUid);
-      }
-
-      yield task;
+    // If there were any errors, throw a batch error at the end
+    if (errors.length > 0) {
+      throw new MlsBatchError(
+        `${errors.length} batch(es) failed during stream processing`,
+        errors.map(e => e.batchIndex),
+        Array.from({ length: batchCount - errors.length }, (_, i) => i),
+        errors
+      );
     }
   }
 
   /**
    * Optimizes batch size based on document size and memory constraints
+   * Accounts for MeiliSearch's payload limits and JSON serialization overhead
    */
   calculateOptimalBatchSize(
     sampleDocuments: any[],
     maxMemoryMB: number = 10
   ): number {
-    if (sampleDocuments.length === 0) {
+    if (!sampleDocuments || sampleDocuments.length === 0) {
       return this.defaultBatchSize;
     }
 
-    // Estimate average document size
-    const sample = sampleDocuments.slice(0, Math.min(10, sampleDocuments.length));
-    const avgDocSize = sample.reduce((sum, doc) =>
-      sum + JSON.stringify(doc).length, 0
-    ) / sample.length;
+    // MeiliSearch has a default 100MB payload limit
+    const MEILISEARCH_PAYLOAD_LIMIT_MB = 100;
+    const effectiveMaxMemoryMB = Math.min(maxMemoryMB, MEILISEARCH_PAYLOAD_LIMIT_MB);
+
+    // Sample up to 10 documents for size estimation
+    const sampleSize = Math.min(10, sampleDocuments.length);
+    const sample = sampleDocuments.slice(0, sampleSize);
+
+    // Calculate average document size with JSON overhead
+    // JSON serialization typically adds ~30% overhead for nested objects
+    const JSON_OVERHEAD_FACTOR = 1.3;
+    let totalSize = 0;
+
+    for (const doc of sample) {
+      try {
+        totalSize += JSON.stringify(doc).length * JSON_OVERHEAD_FACTOR;
+      } catch {
+        // If serialization fails, use a conservative estimate
+        totalSize += 1024; // 1KB per document as fallback
+      }
+    }
+
+    const avgDocSize = totalSize / sample.length;
+
+    // Ensure minimum document size to prevent division issues
+    const minDocSize = 100; // 100 bytes minimum
+    const effectiveDocSize = Math.max(avgDocSize, minDocSize);
 
     // Calculate batch size based on memory constraint
-    const maxBytes = maxMemoryMB * 1024 * 1024;
-    const optimalSize = Math.floor(maxBytes / avgDocSize);
+    const maxBytes = effectiveMaxMemoryMB * 1024 * 1024;
+    const calculatedSize = Math.floor(maxBytes / effectiveDocSize);
 
-    // Clamp between reasonable bounds
-    return Math.max(100, Math.min(optimalSize, 10000));
+    // Apply reasonable bounds
+    const MIN_BATCH_SIZE = 1;     // At least 1 document
+    const MAX_BATCH_SIZE = 10000; // MeiliSearch recommendation for batch size
+
+    // Return clamped value
+    return Math.max(MIN_BATCH_SIZE, Math.min(calculatedSize, MAX_BATCH_SIZE));
   }
 }

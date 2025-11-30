@@ -38,6 +38,10 @@ export interface ExtendedApiClient {
   fetchDocuments(indexUid: string, ids: (string | number)[]): Promise<any[]>;
   editDocuments(indexUid: string, edits: DocumentEdit[]): Promise<{ taskUid: number }>;
 
+  // Localization Settings
+  getLocalizedAttributes(indexUid: string): Promise<LocalizedAttributesSettings>;
+  updateLocalizedAttributes(indexUid: string, settings: LocalizedAttributesSettings): Promise<{ taskUid: number }>;
+
   // Experimental Features
   getExperimentalFeatures(): Promise<ExperimentalFeatures>;
   updateExperimentalFeatures(features: Partial<ExperimentalFeatures>): Promise<ExperimentalFeatures>;
@@ -165,6 +169,13 @@ export interface DocumentEdit {
     path: string;
     value?: any;
   }>;
+}
+
+export interface LocalizedAttributesSettings {
+  localizedAttributes?: Array<{
+    attributePatterns: string[];
+    locales: string[];
+  }> | null;
 }
 
 export interface ExperimentalFeatures {
@@ -348,6 +359,26 @@ export function createExtendedApiClient(client: MeiliSearch): ExtendedApiClient 
     async editDocuments(indexUid: string, edits: DocumentEdit[]) {
       try {
         return await httpClient.post(`/indexes/${indexUid}/documents/edit`, { edits });
+      } catch (error) {
+        handleApiError(error);
+      }
+    },
+
+    // Localization Settings
+    async getLocalizedAttributes(indexUid: string) {
+      try {
+        return await httpClient.get(`/indexes/${indexUid}/settings/localized-attributes`);
+      } catch (error) {
+        handleApiError(error);
+      }
+    },
+
+    async updateLocalizedAttributes(indexUid: string, settings: LocalizedAttributesSettings) {
+      try {
+        return await httpClient.put(
+          `/indexes/${indexUid}/settings/localized-attributes`,
+          settings.localizedAttributes
+        );
       } catch (error) {
         handleApiError(error);
       }
