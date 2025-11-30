@@ -151,7 +151,8 @@ export class EnhancedTaskService {
   }
 
   /**
-   * Gets detailed task statistics
+   * Gets detailed task statistics with pagination support
+   * Fixes the 1000 task limit by implementing pagination
    */
   async getTaskStats(): Promise<{
     totalTasks: number;
@@ -159,25 +160,59 @@ export class EnhancedTaskService {
     types: Record<string, number>;
     indexes: Record<string, number>;
   }> {
-    const tasks = await this.client.getTasks({ limit: 1000 });
-
     const stats = {
-      totalTasks: tasks.total,
+      totalTasks: 0,
       statuses: {} as Record<string, number>,
       types: {} as Record<string, number>,
       indexes: {} as Record<string, number>
     };
 
-    for (const task of tasks.results) {
-      // Count by status
-      stats.statuses[task.status] = (stats.statuses[task.status] || 0) + 1;
+    const limit = 100; // Process in chunks of 100
+    let from = 0;
+    let hasMore = true;
+    const seenTaskUids = new Set<number>();
 
-      // Count by type
-      stats.types[task.type] = (stats.types[task.type] || 0) + 1;
+    // Pagination loop to handle more than 1000 tasks
+    while (hasMore) {
+      const response = await this.client.getTasks({
+        limit,
+        from
+      });
 
-      // Count by index
-      if (task.indexUid) {
-        stats.indexes[task.indexUid] = (stats.indexes[task.indexUid] || 0) + 1;
+      // Update total count
+      stats.totalTasks = response.total;
+
+      // Process each task
+      for (const task of response.results) {
+        // Skip if we've already seen this task (shouldn't happen but being safe)
+        if (seenTaskUids.has(task.uid)) {
+          continue;
+        }
+        seenTaskUids.add(task.uid);
+
+        // Count by status
+        stats.statuses[task.status] = (stats.statuses[task.status] || 0) + 1;
+
+        // Count by type
+        stats.types[task.type] = (stats.types[task.type] || 0) + 1;
+
+        // Count by index
+        if (task.indexUid) {
+          stats.indexes[task.indexUid] = (stats.indexes[task.indexUid] || 0) + 1;
+        }
+      }
+
+      // Check if there are more results
+      hasMore = response.next !== null;
+
+      if (hasMore && response.next) {
+        // Update 'from' for the next iteration
+        from = response.next;
+      }
+
+      // Also check if we've reached the total
+      if (response.total && seenTaskUids.size >= response.total) {
+        hasMore = false;
       }
     }
 

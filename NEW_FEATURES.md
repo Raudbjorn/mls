@@ -32,26 +32,53 @@ const payload = decodeTenantToken(token);
 
 ### 2. Enhanced Task Management
 
-#### EnqueuedTaskPromise Pattern
+#### The EnqueuedTaskPromise Pattern
 
-All task-returning methods now support promise chaining with `onFinish()`:
+The `onFinish()` method provides a powerful way to wait for MeiliSearch tasks to complete. Unlike basic task submission which returns immediately, `onFinish()` intelligently polls the task status and returns the final result.
 
 ```typescript
 import { EnhancedTaskService } from 'mls';
 
 const taskService = new EnhancedTaskService(client);
 
-// Chain task completion
-const task = await index.addDocuments(documents)
-  .onFinish({ timeOutMs: 5000, intervalMs: 100 });
+// Wrap any task-returning promise to add the onFinish capability
+const enhancedPromise = taskService.wrapTaskPromise(
+  index.addDocuments(documents)
+);
 
-// Wait for multiple tasks
+// Method 1: Just get the enqueued task (immediate return)
+const enqueuedTask = await enhancedPromise;
+console.log('Task submitted:', enqueuedTask.taskUid);
+
+// Method 2: Wait for task completion with onFinish
+const completedTask = await index.addDocuments(documents)
+  .then(task => taskService.wrapTaskPromise(Promise.resolve(task)))
+  .onFinish({ timeOutMs: 30000 });
+
+if (completedTask.status === 'succeeded') {
+  console.log('Documents indexed successfully');
+} else if (completedTask.status === 'failed') {
+  console.error('Indexing failed:', completedTask.error);
+}
+```
+
+##### How onFinish() Works
+
+1. **Intelligent Polling**: Starts with fast polling (100ms) and gradually increases to reduce server load
+2. **Exponential Backoff**: Polling interval increases up to a maximum (default 2000ms)
+3. **Timeout Protection**: Throws `MlsTaskTimeoutError` if the task doesn't complete within the timeout
+4. **Status Detection**: Automatically stops polling when task reaches a final state (succeeded, failed, canceled)
+
+##### Additional Task Management
+
+```typescript
+// Wait for multiple tasks concurrently
 const tasks = await taskService.waitForTasks(
   [taskUid1, taskUid2, taskUid3],
   { timeOutMs: 10000 }
 );
 
-// Stream task results as they complete
+// Process tasks as they complete
 for await (const task of taskService.waitForTasksIter(taskUids)) {
   console.log(`Task ${task.taskUid} completed with status ${task.status}`);
 }
