@@ -20,7 +20,7 @@ export class EnhancedTaskService {
   private client: MeiliSearch;
   private defaultWaitOptions: WaitOptions = {
     timeOutMs: 5000,
-    intervalMs: 50
+    intervalMs: 50,
   };
 
   constructor(client: MeiliSearch, defaultWaitOptions?: WaitOptions) {
@@ -52,9 +52,10 @@ export class EnhancedTaskService {
     taskUidOrEnqueuedTask: number | EnqueuedTask,
     options?: WaitOptions
   ): Promise<Task> {
-    const taskUid = typeof taskUidOrEnqueuedTask === 'number'
-      ? taskUidOrEnqueuedTask
-      : taskUidOrEnqueuedTask.taskUid;
+    const taskUid =
+      typeof taskUidOrEnqueuedTask === 'number'
+        ? taskUidOrEnqueuedTask
+        : taskUidOrEnqueuedTask.taskUid;
 
     const { timeOutMs, intervalMs } = { ...this.defaultWaitOptions, ...options };
     const startTime = Date.now();
@@ -82,6 +83,7 @@ export class EnhancedTaskService {
   /**
    * Waits for multiple tasks to complete
    * Returns results as they complete (not in order)
+   * Failed tasks are yielded with a special status to allow caller to handle failures
    */
   async *waitForTasksIter(
     taskUidsOrEnqueuedTasks: Iterable<number | EnqueuedTask>,
@@ -89,20 +91,20 @@ export class EnhancedTaskService {
   ): AsyncGenerator<Task, void, undefined> {
     // Create array of {promise, index} wrappers
     const pending = Array.from(taskUidsOrEnqueuedTasks).map((task, index) => ({
-      promise: this.waitForTask(task, options).then(result => ({ index, result })),
-      index
+      promise: this.waitForTask(task, options).then((result) => ({ index, result })),
+      index,
     }));
 
     // Continue while we have pending tasks
     while (pending.length > 0) {
       // Race all pending promises
-      const completed = await Promise.race(pending.map(p => p.promise));
+      const completed = await Promise.race(pending.map((p) => p.promise));
 
       // Yield the completed result
       yield completed.result;
 
       // Remove the completed promise from pending array
-      const completedIndex = pending.findIndex(p => p.index === completed.index);
+      const completedIndex = pending.findIndex((p) => p.index === completed.index);
       if (completedIndex !== -1) {
         pending.splice(completedIndex, 1);
       }
@@ -118,8 +120,8 @@ export class EnhancedTaskService {
   ): Promise<Task[]> {
     const tasks: Task[] = [];
 
-    for await (const task of this.waitForTasksIter(taskUidsOrEnqueuedTasks, options)) {
-      tasks.push(task);
+    for await (const result of this.waitForTasksIter(taskUidsOrEnqueuedTasks, options)) {
+      tasks.push(result);
     }
 
     return tasks;
@@ -165,7 +167,7 @@ export class EnhancedTaskService {
       totalTasks: 0,
       statuses: {} as Record<string, number>,
       types: {} as Record<string, number>,
-      indexes: {} as Record<string, number>
+      indexes: {} as Record<string, number>,
     };
 
     const limit = 100; // Process in chunks of 100
@@ -177,7 +179,7 @@ export class EnhancedTaskService {
     while (hasMore) {
       const response = await this.client.getTasks({
         limit,
-        from
+        from,
       });
 
       // Update total count
@@ -221,6 +223,6 @@ export class EnhancedTaskService {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

@@ -63,6 +63,12 @@
         if (permissions.settingsUpdate) actions.push('settings.update');
         if (permissions.keysCreate) actions.push('keys.create');
 
+        // Validate that at least one action is selected
+        if (actions.length === 0) {
+            error = 'Please select at least one permission/action';
+            return;
+        }
+
         const payload = {
             description: newKeyDescription,
             actions,
@@ -125,7 +131,10 @@
                     <label><input type="checkbox" bind:checked={permissions.indexesCreate} /> Create Index</label>
                     <label><input type="checkbox" bind:checked={permissions.indexesUpdate} /> Update Index</label>
                     <label><input type="checkbox" bind:checked={permissions.indexesDelete} /> Delete Index</label>
+                    <label><input type="checkbox" bind:checked={permissions.tasksGet} /> Get Tasks</label>
+                    <label><input type="checkbox" bind:checked={permissions.settingsGet} /> Get Settings</label>
                     <label><input type="checkbox" bind:checked={permissions.settingsUpdate} /> Update Settings</label>
+                    <label><input type="checkbox" bind:checked={permissions.keysCreate} /> Create Keys</label>
                 </div>
             </div>
 
