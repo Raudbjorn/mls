@@ -85,3 +85,4 @@ yarn-error.log*
 .history/
 *storybook.log
 storybook-static
+codebase-review-output.txt
