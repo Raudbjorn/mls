@@ -1,81 +1,56 @@
-import { describe, it, expect } from 'vitest';
+import { test, expect } from '@playwright/test';
 
-/**
- * E2E Tests - Search Playground Flow
- *
- * End-to-end tests for the search testing/playground feature.
- * Goal: "Whole-library realism" - test complete search testing journeys.
- */
-describe('E2E: Search Playground Flow', () => {
-  describe('basic search', () => {
-    it.todo('should execute search query and display results', () => {
-      expect.fail('TODO: E2E - User enters query and sees matching documents');
+test.describe('E2E: Search Playground Flow', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:5173/playground');
+    // Handle auth if needed
+    if (await page.getByLabel(/API Key/i).isVisible()) {
+        await page.getByLabel(/API Key/i).fill('masterKey');
+        await page.getByText('Connect').click();
+    }
+  });
+
+  test.describe('basic search', () => {
+    test('should execute search query and display results', async ({ page }) => {
+      await page.getByPlaceholder('Search...').fill('batman');
+      // Wait for results
+      await expect(page.getByText('Batman Begins')).toBeVisible();
     });
 
-    it.todo('should highlight matching terms in results', () => {
-      expect.fail('TODO: E2E - Search terms are highlighted in result text');
-    });
-
-    it.todo('should show result count', () => {
-      expect.fail('TODO: E2E - Total hits count is displayed');
-    });
-
-    it.todo('should paginate large result sets', () => {
-      expect.fail('TODO: E2E - User can navigate through pages of results');
+    test('should show result count', async ({ page }) => {
+      await page.getByPlaceholder('Search...').fill('a');
+      await expect(page.getByText(/Found \d+ hits/)).toBeVisible();
     });
   });
 
-  describe('search configuration', () => {
-    it.todo('should apply filters to search', () => {
-      expect.fail('TODO: E2E - User adds filter and results are narrowed');
+  test.describe('search configuration', () => {
+    test('should apply filters to search', async ({ page }) => {
+      await page.getByPlaceholder('Filter...').fill('id = 1');
+      await expect(page.getByText('Found 1 hits')).toBeVisible();
     });
 
-    it.todo('should apply sort order', () => {
-      expect.fail('TODO: E2E - User changes sort and results reorder');
-    });
-
-    it.todo('should limit result count', () => {
-      expect.fail('TODO: E2E - User sets limit and correct number returned');
-    });
-
-    it.todo('should select specific attributes to return', () => {
-      expect.fail('TODO: E2E - User restricts attributes and results match');
+    test('should limit result count', async ({ page }) => {
+      await page.getByLabel('Limit').fill('5');
+      // Verify only 5 items
+      const items = await page.locator('.hit-item').count();
+      expect(items).toBeLessThanOrEqual(5);
     });
   });
 
-  describe('hybrid search', () => {
-    it.todo('should toggle hybrid search mode', () => {
-      expect.fail('TODO: E2E - User enables hybrid search option');
+  test.describe('hybrid search', () => {
+    test('should toggle hybrid search mode', async ({ page }) => {
+      await page.getByLabel('Hybrid Search').check();
+      await expect(page.getByText('Semantic Ratio')).toBeVisible();
     });
 
-    it.todo('should configure semantic ratio', () => {
-      expect.fail('TODO: E2E - User adjusts keyword/vector balance slider');
-    });
-
-    it.todo('should show semantic similarity scores', () => {
-      expect.fail('TODO: E2E - Results include vector similarity metric');
-    });
-
-    it.todo('should compare keyword vs hybrid results', () => {
-      expect.fail('TODO: E2E - Side-by-side comparison is available');
-    });
-  });
-
-  describe('faceted search', () => {
-    it.todo('should display facet options', () => {
-      expect.fail('TODO: E2E - Facet filters appear in sidebar');
-    });
-
-    it.todo('should filter by facet selection', () => {
-      expect.fail('TODO: E2E - Clicking facet value filters results');
-    });
-
-    it.todo('should show facet counts', () => {
-      expect.fail('TODO: E2E - Each facet value shows document count');
-    });
-
-    it.todo('should search within facets', () => {
-      expect.fail('TODO: E2E - User searches facet values to find specific one');
+    test('should configure semantic ratio', async ({ page }) => {
+      await page.getByLabel('Hybrid Search').check();
+      await page.getByLabel('Semantic Ratio').fill('0.8');
+      // Trigger search
+      await page.getByPlaceholder('Search...').fill('matrix');
+      // Check results updated (hard to verify semantic vs keyword without specific data, but check UI interaction)
+      await expect(page.getByText('Score:')).toBeVisible();
     });
   });
 });
+
