@@ -1,0 +1,9 @@
+export { default as MeiliSettings } from './MeiliSettings.svelte';
+export { default as EmbedderConfig } from './EmbedderConfig.svelte';
+export { default as FilterAttributeConfig } from './FilterAttributeConfig.svelte';
+export { default as LocalizedAttributesConfig } from './LocalizedAttributesConfig.svelte';
+export { default as RankingRulesEditor } from './RankingRulesEditor.svelte';
+export { default as SearchDisplayConfig } from './SearchDisplayConfig.svelte';
+export { default as SynonymManager } from './SynonymManager.svelte';
+export { default as TypoToleranceEditor } from './TypoToleranceEditor.svelte';
+export { default as VectorIndexConfig } from './VectorIndexConfig.svelte';

@@ -1,91 +1,117 @@
 import { describe, it, expect } from 'vitest';
+import * as lib from '$lib';
 
 /**
  * Integration Tests - Library Exports
  *
  * Tests that verify the library's public API is correctly exported
- * and usable by consumers.
+ * and usable by consumers, including backward compatibility with
+ * the new atomic design structure.
  *
  * Goal: "Does my published package behave in a consumer app?"
  */
 describe('Integration: Library Exports', () => {
-  describe('component exports', () => {
-    it.todo('should export MeiliProvider', () => {
-      expect.fail('TODO: Integration test - import { MeiliProvider } works');
+  describe('backward compatible component exports', () => {
+    it('should export MeiliProvider', () => {
+      expect(lib.MeiliProvider).toBeDefined();
     });
 
-    it.todo('should export all admin components', () => {
-      expect.fail('TODO: Integration test - BackupManager, BatchMonitor, etc. importable');
+    it('should export all admin components', () => {
+      expect(lib.BackupManager).toBeDefined();
+      expect(lib.BatchMonitor).toBeDefined();
+      expect(lib.SystemHealth).toBeDefined();
+      expect(lib.WebhookManager).toBeDefined();
     });
 
-    it.todo('should export all settings components', () => {
-      expect.fail('TODO: Integration test - EmbedderConfig, FilterConfig, etc. importable');
+    it('should export all settings components', () => {
+      expect(lib.EmbedderConfig).toBeDefined();
+      expect(lib.FilterAttributeConfig).toBeDefined();
+      expect(lib.RankingRulesEditor).toBeDefined();
+      expect(lib.SynonymManager).toBeDefined();
     });
   });
 
   describe('service exports', () => {
-    it.todo('should export TaskService', () => {
-      expect.fail('TODO: Integration test - import { TaskService } works');
+    it('should export TaskService', () => {
+      expect(lib.TaskService).toBeDefined();
     });
 
-    it.todo('should export EnhancedTaskService', () => {
-      expect.fail('TODO: Integration test - EnhancedTaskService importable');
+    it('should export EnhancedTaskService', () => {
+      expect(lib.EnhancedTaskService).toBeDefined();
     });
 
-    it.todo('should export BatchService', () => {
-      expect.fail('TODO: Integration test - BatchService importable');
+    it('should export BatchService', () => {
+      expect(lib.BatchService).toBeDefined();
     });
 
-    it.todo('should export TypedIndex', () => {
-      expect.fail('TODO: Integration test - TypedIndex importable');
+    it('should export TypedIndex', () => {
+      expect(lib.TypedIndex).toBeDefined();
     });
   });
 
   describe('utility exports', () => {
-    it.todo('should export token utilities', () => {
-      expect.fail('TODO: Integration test - generateTenantToken, validateTenantToken work');
+    it('should export token utilities', () => {
+      expect(lib.generateTenantToken).toBeDefined();
+      expect(lib.validateTenantToken).toBeDefined();
+      expect(lib.decodeTenantToken).toBeDefined();
     });
 
-    it.todo('should export API client factory', () => {
-      expect.fail('TODO: Integration test - createApiClient works');
+    it('should export API client factory', () => {
+      expect(lib.createApiClient).toBeDefined();
     });
 
-    it.todo('should export extended API client', () => {
-      expect.fail('TODO: Integration test - createExtendedApiClient works');
+    it('should export extended API client', () => {
+      expect(lib.createExtendedApiClient).toBeDefined();
     });
   });
 
   describe('error exports', () => {
-    it.todo('should export all error classes', () => {
-      expect.fail('TODO: Integration test - MlsError, MlsApiError, etc. importable');
-    });
-
-    it.todo('should allow instanceof checks', () => {
-      expect.fail('TODO: Integration test - catch (e) { if (e instanceof MlsApiError) } works');
-    });
-  });
-
-  describe('type exports', () => {
-    it.todo('should export MeiliTask type', () => {
-      expect.fail('TODO: Integration test - type { MeiliTask } importable');
-    });
-
-    it.todo('should export configuration types', () => {
-      expect.fail('TODO: Integration test - ClientConfig, TaskServiceOptions importable');
-    });
-
-    it.todo('should export service types', () => {
-      expect.fail('TODO: Integration test - BatchOptions, WaitOptions importable');
+    it('should export all error classes', () => {
+      expect(lib.MlsError).toBeDefined();
+      expect(lib.MlsApiError).toBeDefined();
+      expect(lib.MlsTaskTimeoutError).toBeDefined();
+      expect(lib.MlsRequestTimeoutError).toBeDefined();
+      expect(lib.MlsBatchError).toBeDefined();
+      expect(lib.MlsTokenError).toBeDefined();
     });
   });
 
-  describe('tree-shaking', () => {
-    it.todo('should allow importing individual components', () => {
-      expect.fail('TODO: Integration test - Importing one component does not bundle all');
+  describe('atomic design structure exports', () => {
+    it('should export design system namespace', () => {
+      expect(lib.designSystem).toBeDefined();
+      expect(lib.atoms).toBeDefined();
+      expect(lib.molecules).toBeDefined();
     });
 
-    it.todo('should have proper ESM exports', () => {
-      expect.fail('TODO: Integration test - ESM imports work correctly');
+    it('should export feature namespaces', () => {
+      expect(lib.features).toBeDefined();
+      expect(lib.backup).toBeDefined();
+      expect(lib.tasks).toBeDefined();
+      expect(lib.settings).toBeDefined();
+      expect(lib.search).toBeDefined();
+      expect(lib.security).toBeDefined();
+      expect(lib.monitoring).toBeDefined();
+      expect(lib.health).toBeDefined();
+    });
+
+    it('should export meili domain namespace', () => {
+      expect(lib.meili).toBeDefined();
+    });
+
+    it('should have atoms available through namespace', () => {
+      expect(lib.atoms.Button).toBeDefined();
+      expect(lib.atoms.Card).toBeDefined();
+      expect(lib.atoms.Badge).toBeDefined();
+      expect(lib.atoms.Input).toBeDefined();
+      expect(lib.atoms.LoadingSpinner).toBeDefined();
+      expect(lib.atoms.ErrorMessage).toBeDefined();
+      expect(lib.atoms.EmptyState).toBeDefined();
+    });
+
+    it('should have molecules available through namespace', () => {
+      expect(lib.molecules.SettingRow).toBeDefined();
+      expect(lib.molecules.FormField).toBeDefined();
+      expect(lib.molecules.TaskItem).toBeDefined();
     });
   });
 });

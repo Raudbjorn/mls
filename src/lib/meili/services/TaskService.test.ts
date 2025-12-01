@@ -1,100 +1,410 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { TaskService, type TaskServiceOptions } from './TaskService';
+import type { MeiliTask } from '../types/meilisearch';
+import type { EnqueuedTask } from 'meilisearch';
 
-/**
- * TaskService Domain Tests
- *
- * Domain services house the heaviest property-based testing.
- * Goal: "Domain rules are correct under a storm of random inputs."
- *
- * This file contains STUB tests. The existing TaskService.test.ts in
- * src/lib/services/ has actual implementations that should be migrated here.
- */
+// Helper to create a mock EnqueuedTask
+const createMockEnqueuedTask = (taskUid: number): EnqueuedTask => ({
+  taskUid,
+  indexUid: 'test-index',
+  status: 'enqueued',
+  type: 'documentAdditionOrUpdate',
+  enqueuedAt: new Date(),
+});
+
+// Mock MeiliSearch client
+const createMockClient = (getTaskImpl?: (taskUid: number) => Promise<any>) => ({
+  getTask: getTaskImpl || vi.fn().mockResolvedValue({
+    taskUid: 1,
+    status: 'succeeded',
+    type: 'indexCreation',
+    enqueuedAt: new Date().toISOString(),
+  }),
+});
+
 describe('TaskService', () => {
-  describe('task submission', () => {
-    it.todo('should validate task response has taskUid', () => {
-      expect.fail('TODO: Property test - any valid EnqueuedTask returns valid taskUid');
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  describe('constructor', () => {
+    it('should create instance with default options', () => {
+      const client = createMockClient();
+      const service = new TaskService(client as any);
+
+      expect(service).toBeInstanceOf(TaskService);
+      service.destroy();
     });
 
-    it.todo('should reject invalid task responses', () => {
-      expect.fail('TODO: Property test - responses without taskUid throw');
+    it('should accept custom options', () => {
+      const client = createMockClient();
+      const options: TaskServiceOptions = {
+        pollingInterval: 2000,
+        maxCompletedTasks: 100,
+        completedTaskRetention: 10 * 60 * 1000,
+        maxPollingErrors: 10,
+      };
+
+      const service = new TaskService(client as any, options);
+      expect(service).toBeInstanceOf(TaskService);
+      service.destroy();
     });
   });
 
-  describe('task state management', () => {
-    it.todo('should track active vs completed tasks', () => {
-      expect.fail('TODO: Property test - task state transitions are valid');
+  describe('submitTask', () => {
+    it('should submit a task and track it', async () => {
+      const client = createMockClient();
+      const service = new TaskService(client as any);
+
+      const taskUid = await service.submitTask(
+        Promise.resolve(createMockEnqueuedTask(42))
+      );
+
+      expect(taskUid).toBe(42);
+      expect(client.getTask).toHaveBeenCalledWith(42);
+
+      service.destroy();
     });
 
-    it.todo('should never report negative active task count', () => {
-      expect.fail('TODO: Property test - getActiveTaskCount() >= 0 always');
+    it('should throw if task response is invalid', async () => {
+      const client = createMockClient();
+      const service = new TaskService(client as any);
+
+      await expect(
+        // @ts-expect-error Testing invalid input
+        service.submitTask(Promise.resolve({}))
+      ).rejects.toThrow('Invalid task response');
+
+      service.destroy();
     });
 
-    it.todo('should maintain task ordering by UID', () => {
-      expect.fail('TODO: Property test - getAllTasks() sorted by taskUid descending');
-    });
-  });
+    it('should throw if promise rejects', async () => {
+      const client = createMockClient();
+      const service = new TaskService(client as any);
 
-  describe('task polling', () => {
-    it.todo('should poll only active tasks', () => {
-      expect.fail('TODO: Property test - completed tasks never polled');
-    });
+      await expect(
+        service.submitTask(Promise.reject(new Error('Network error')))
+      ).rejects.toThrow('Network error');
 
-    it.todo('should respect polling interval', () => {
-      expect.fail('TODO: Test that polling occurs at configured interval');
+      service.destroy();
     });
 
-    it.todo('should stop polling after max errors', () => {
-      expect.fail('TODO: Property test - consecutive errors trigger polling stop');
-    });
+    it('should handle taskUid: 0 correctly', async () => {
+      const client = createMockClient();
+      const service = new TaskService(client as any);
 
-    it.todo('should reset error count on success', () => {
-      expect.fail('TODO: Property test - successful poll resets error counter');
-    });
-  });
+      const taskUid = await service.submitTask(
+        Promise.resolve(createMockEnqueuedTask(0))
+      );
 
-  describe('task completion callbacks', () => {
-    it.todo('should fire callback for each completed task exactly once', () => {
-      expect.fail('TODO: Property test - callback fired once per completion');
-    });
+      expect(taskUid).toBe(0);
+      expect(client.getTask).toHaveBeenCalledWith(0);
 
-    it.todo('should fire callback for already-completed tasks on subscribe', () => {
-      expect.fail('TODO: Test that late subscribers get notified of past completions');
-    });
-
-    it.todo('should support multiple callbacks', () => {
-      expect.fail('TODO: Test that multiple onTaskComplete listeners work');
-    });
-
-    it.todo('should unsubscribe correctly', () => {
-      expect.fail('TODO: Test that unsubscribe prevents further callbacks');
-    });
-  });
-
-  describe('cleanup and retention', () => {
-    it.todo('should remove tasks older than retention period', () => {
-      expect.fail('TODO: Property test - cleanup removes old completed tasks');
-    });
-
-    it.todo('should never remove active tasks', () => {
-      expect.fail('TODO: Property test - cleanup preserves active tasks');
-    });
-
-    it.todo('should respect maxCompletedTasks limit', () => {
-      expect.fail('TODO: Property test - completed tasks capped at max');
+      service.destroy();
     });
   });
 
-  describe('destroy/cleanup', () => {
-    it.todo('should stop all polling on destroy', () => {
-      expect.fail('TODO: Test that destroy stops all intervals');
+  describe('addTask', () => {
+    it('should add and fetch task status', async () => {
+      const mockTask = {
+        taskUid: 1,
+        status: 'succeeded',
+        type: 'documentAdditionOrUpdate',
+        enqueuedAt: new Date().toISOString(),
+      };
+
+      const client = createMockClient(() => Promise.resolve(mockTask));
+      const service = new TaskService(client as any);
+
+      await service.addTask(1);
+
+      const task = service.getTask(1);
+      expect(task?.status).toBe('succeeded');
+
+      service.destroy();
     });
 
-    it.todo('should clear all callbacks on destroy', () => {
-      expect.fail('TODO: Test that callbacks are cleared');
+    it('should start polling for active tasks', async () => {
+      const mockTask = {
+        taskUid: 1,
+        status: 'processing',
+        type: 'documentAdditionOrUpdate',
+        enqueuedAt: new Date().toISOString(),
+      };
+
+      const client = createMockClient(() => Promise.resolve(mockTask));
+      const service = new TaskService(client as any, { pollingInterval: 100 });
+
+      await service.addTask(1);
+
+      expect(service.isPolling(1)).toBe(true);
+
+      service.destroy();
     });
 
-    it.todo('should be safe to call destroy multiple times', () => {
-      expect.fail('TODO: Property test - multiple destroy calls are idempotent');
+    it('should not poll for completed tasks', async () => {
+      const mockTask = {
+        taskUid: 1,
+        status: 'succeeded',
+        type: 'documentAdditionOrUpdate',
+        enqueuedAt: new Date().toISOString(),
+      };
+
+      const client = createMockClient(() => Promise.resolve(mockTask));
+      const service = new TaskService(client as any);
+
+      await service.addTask(1);
+
+      expect(service.isPolling(1)).toBe(false);
+
+      service.destroy();
+    });
+  });
+
+  describe('getAllTasks', () => {
+    it('should return all tasks sorted by UID descending', async () => {
+      const client = {
+        getTask: vi.fn()
+          .mockResolvedValueOnce({ taskUid: 1, status: 'succeeded', type: 'test', enqueuedAt: new Date().toISOString() })
+          .mockResolvedValueOnce({ taskUid: 2, status: 'succeeded', type: 'test', enqueuedAt: new Date().toISOString() })
+          .mockResolvedValueOnce({ taskUid: 3, status: 'succeeded', type: 'test', enqueuedAt: new Date().toISOString() }),
+      };
+
+      const service = new TaskService(client as any);
+
+      await service.addTask(1);
+      await service.addTask(2);
+      await service.addTask(3);
+
+      const tasks = service.getAllTasks();
+      expect(tasks.map(t => t.taskUid)).toEqual([3, 2, 1]);
+
+      service.destroy();
+    });
+  });
+
+  describe('getActiveTaskCount', () => {
+    it('should return count of actively polling tasks', async () => {
+      const client = {
+        getTask: vi.fn()
+          .mockResolvedValueOnce({ taskUid: 1, status: 'processing', type: 'test', enqueuedAt: new Date().toISOString() })
+          .mockResolvedValueOnce({ taskUid: 2, status: 'processing', type: 'test', enqueuedAt: new Date().toISOString() })
+          .mockResolvedValueOnce({ taskUid: 3, status: 'succeeded', type: 'test', enqueuedAt: new Date().toISOString() }),
+      };
+
+      const service = new TaskService(client as any);
+
+      await service.addTask(1);
+      await service.addTask(2);
+      await service.addTask(3);
+
+      expect(service.getActiveTaskCount()).toBe(2);
+
+      service.destroy();
+    });
+  });
+
+  describe('onTaskComplete', () => {
+    it('should call callback when task completes', async () => {
+      let callCount = 0;
+      const completedTask: MeiliTask = {
+        taskUid: 1,
+        status: 'succeeded',
+        type: 'test',
+        enqueuedAt: new Date().toISOString(),
+      };
+
+      const client = {
+        getTask: vi.fn()
+          .mockResolvedValueOnce({ taskUid: 1, status: 'processing', type: 'test', enqueuedAt: new Date().toISOString() })
+          .mockResolvedValueOnce(completedTask),
+      };
+
+      const service = new TaskService(client as any, { pollingInterval: 100 });
+
+      const callback = vi.fn();
+      service.onTaskComplete(callback);
+
+      await service.addTask(1);
+
+      // Advance timer to trigger polling
+      await vi.advanceTimersByTimeAsync(150);
+
+      expect(callback).toHaveBeenCalledWith(completedTask);
+
+      service.destroy();
+    });
+
+    it('should return unsubscribe function', async () => {
+      const client = createMockClient();
+      const service = new TaskService(client as any);
+
+      const callback = vi.fn();
+      const unsubscribe = service.onTaskComplete(callback);
+
+      expect(typeof unsubscribe).toBe('function');
+      unsubscribe();
+
+      service.destroy();
+    });
+
+    it('should call callback for already-completed tasks', async () => {
+      const completedTask = {
+        taskUid: 1,
+        status: 'succeeded',
+        type: 'test',
+        enqueuedAt: new Date().toISOString(),
+      };
+
+      const client = {
+        getTask: vi.fn().mockResolvedValue(completedTask),
+      };
+
+      const service = new TaskService(client as any);
+
+      const callback = vi.fn();
+      service.onTaskComplete(callback);
+
+      await service.addTask(1);
+
+      // Callback should be called immediately for already-completed task
+      expect(callback).toHaveBeenCalledWith(completedTask);
+
+      service.destroy();
+    });
+  });
+
+  describe('cleanup', () => {
+    it('should remove old completed tasks', async () => {
+      const client = {
+        getTask: vi.fn().mockResolvedValue({
+          taskUid: 1,
+          status: 'succeeded',
+          type: 'test',
+          enqueuedAt: new Date().toISOString(),
+        }),
+      };
+
+      const service = new TaskService(client as any, {
+        completedTaskRetention: 1000, // 1 second retention
+      });
+
+      await service.addTask(1);
+      expect(service.getTask(1)).toBeDefined();
+
+      // Advance time past retention period
+      vi.advanceTimersByTime(2000);
+
+      // Trigger cleanup
+      service.cleanup();
+
+      expect(service.getTask(1)).toBeUndefined();
+
+      service.destroy();
+    });
+  });
+
+  describe('destroy', () => {
+    it('should stop all polling intervals', async () => {
+      const client = {
+        getTask: vi.fn().mockResolvedValue({
+          taskUid: 1,
+          status: 'processing',
+          type: 'test',
+          enqueuedAt: new Date().toISOString(),
+        }),
+      };
+
+      const service = new TaskService(client as any);
+
+      await service.addTask(1);
+      expect(service.isPolling(1)).toBe(true);
+
+      service.destroy();
+
+      expect(service.isPolling(1)).toBe(false);
+      expect(service.getActiveTaskCount()).toBe(0);
+    });
+
+    it('should clear completion callbacks', async () => {
+      const client = createMockClient();
+      const service = new TaskService(client as any);
+
+      const callback = vi.fn();
+      service.onTaskComplete(callback);
+
+      service.destroy();
+
+      // After destroy, callbacks should be cleared (internal state)
+      // We can't directly test this, but destroy should complete without error
+      expect(service.getActiveTaskCount()).toBe(0);
+    });
+  });
+
+  describe('polling behavior', () => {
+    it('should stop polling after consecutive errors', async () => {
+      const client = {
+        getTask: vi.fn()
+          .mockResolvedValueOnce({ taskUid: 1, status: 'processing', type: 'test', enqueuedAt: new Date().toISOString() })
+          .mockRejectedValue(new Error('Network error')),
+      };
+
+      const service = new TaskService(client as any, {
+        pollingInterval: 100,
+        maxPollingErrors: 3,
+      });
+
+      await service.addTask(1);
+      expect(service.isPolling(1)).toBe(true);
+
+      // Advance time to trigger multiple failed polls
+      for (let i = 0; i < 5; i++) {
+        await vi.advanceTimersByTimeAsync(150);
+      }
+
+      expect(service.isPolling(1)).toBe(false);
+
+      service.destroy();
+    });
+
+    it('should reset error count on successful poll', async () => {
+      let callCount = 0;
+      const client = {
+        getTask: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount <= 2) {
+            return Promise.reject(new Error('Temporary error'));
+          }
+          return Promise.resolve({
+            taskUid: 1,
+            status: 'processing',
+            type: 'test',
+            enqueuedAt: new Date().toISOString(),
+          });
+        }),
+      };
+
+      const service = new TaskService(client as any, {
+        pollingInterval: 100,
+        maxPollingErrors: 5,
+      });
+
+      await service.addTask(1);
+
+      // Advance time to trigger polls
+      for (let i = 0; i < 4; i++) {
+        await vi.advanceTimersByTimeAsync(150);
+      }
+
+      // Should still be polling because errors were reset
+      expect(service.isPolling(1)).toBe(true);
+
+      service.destroy();
     });
   });
 });

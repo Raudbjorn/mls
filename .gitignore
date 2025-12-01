@@ -83,3 +83,5 @@ yarn-error.log*
 *.bak
 *.backup
 .history/
+*storybook.log
+storybook-static

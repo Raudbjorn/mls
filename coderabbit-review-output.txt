@@ -1,0 +1,1300 @@
+Starting CodeRabbit review in plain text mode...
+
+Connecting to review service
+Setting up
+Analyzing
+Reviewing
+
+============================================================================
+File: src/lib/design-system/atoms/SectionHeader.test.ts
+Line: 37 to 39
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/SectionHeader.test.ts around lines 37 to 39, the todo test references non-existent color/muted props on SectionHeader; either remove the test or implement the feature before testing: if you choose to remove, delete this it.todo block (or replace it with a test asserting current behavior/props); if you choose to implement, add color/muted props to the SectionHeader component and its TypeScript types, update its styling logic to respect those props, and then update the test to assert that the rendered text receives the correct CSS class/style for each variant.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/SectionHeader.test.ts
+Line: 27 to 29
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/SectionHeader.test.ts around lines 27 to 29, the test references a non-existent "divider" prop; either remove the test or implement the feature. To fix: if the divider behavior is required, add a boolean divider prop to SectionHeader's prop types, render a bottom border (or divider element) when true, update component CSS/classes and any snapshots, then update tests to assert the presence of the divider; otherwise remove this todo test (and any related expectations) so tests reflect the current implementation.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/SectionHeader.test.ts
+Line: 33 to 35
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/SectionHeader.test.ts around lines 33 to 35, the todo test references a non-existent size prop/variants; remove this test or replace it with a test that matches the component's actual API (e.g., assert behavior of existing props like variant/level or default styling) — if you intend to add size variants, implement the prop and styles first, otherwise delete the todo and update tests to cover real props.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Tag.svelte
+Line: 15 to 33
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Tag.svelte around lines 15 to 33, the remove button has no visible focus indicator for keyboard users; add CSS focus styles for .tag__remove (use :focus and preferably :focus-visible) to provide a clear, high-contrast outline or box-shadow (e.g., 2px solid or 3px ring) and ensure the style does not clash with existing layout or color variables; preserve default behavior for mouse interactions by targeting focus-visible and ensure the focus style meets contrast requirements for WCAG.
+
+
+
+============================================================================
+File: src/lib/components/settings/FilterAttributeConfig.svelte
+Line: 12 to 17
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/FilterAttributeConfig.svelte around lines 12 to 17, the code validates newFilterable using a truthy check but doesn't trim whitespace, allowing space-only strings; modify the logic to trim newFilterable first (e.g., const trimmed = newFilterable?.trim()) and use trimmed for the validation and any subsequent use or insertion so that only non-empty trimmed values pass (check trimmed && trimmed.length > 0) and ensure you store/use the trimmed value instead of the original.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Card.test.ts
+Line: 27 to 29
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Card.test.ts around lines 27 to 29, update the test description so it refers to the Card component's actual prop (variant) instead of a nonexistent bordered prop; change the todo description to mention the correct API (e.g., "should render borderless variant when variant='borderless'") so the test accurately reflects how to implement the behavior.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Button.test.ts
+Line: 11 to 76
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Button.test.ts around lines 11 to 76, several tests use it.todo() but include expect.fail() implementations which causes them to run and fail; remove the expect.fail() calls and leave the it.todo() blocks empty (no callback) for each listed todo test so Vitest treats them as skipped todos; ensure all instances shown (default props, variants, sizes, icon slot, loading state, behavior, keyboard handling, accessibility todos) follow this pattern.
+
+
+
+============================================================================
+File: src/lib/features/search/HybridSearchTester.svelte
+Line: 22
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/search/HybridSearchTester.svelte around line 22 (and also affecting the debounce logic at lines 82-86), the debounce timer stored in timer is not cleared on component destroy which can trigger search() after unmount; import Svelte's onDestroy and in an onDestroy handler clear the pending timeout (use clearTimeout/clearInterval as appropriate) and set timer to null, and also ensure any existing timer is cleared before setting a new one in the debounce block (lines 82-86) to avoid leaks.
+
+
+
+============================================================================
+File: src/lib/features/tasks/MeiliTaskWatcher.svelte
+Line: 5
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/tasks/MeiliTaskWatcher.svelte around lines 5–13, the call to getContext('taskService') may return undefined and the subsequent calls to taskService.getAllTasks() will throw; add a guard immediately after obtaining the context to detect a missing taskService, and if missing either return early / render nothing or set a fallback state (e.g., show a minimal fallback UI or log an error) so no methods on undefined are invoked; ensure any existing onMount or reactive blocks that call getAllTasks() check the guarded variable before calling the service.
+
+
+
+============================================================================
+File: src/lib/features/tasks/MeiliTaskWatcher.svelte
+Line: 3
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/tasks/MeiliTaskWatcher.svelte around line 3, the import path '../services/TaskService' points to src/lib/features/services but the actual module lives at src/lib/meili/services/TaskService.ts; change the import to the correct relative path (../../meili/services/TaskService) and keep it as a type import if needed, then save and run the build/TS check to confirm module resolution succeeds.
+
+
+
+============================================================================
+File: src/lib/components/MeiliProvider.svelte
+Line: 9 to 13
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/MeiliProvider.svelte around lines 9 to 13, the MeiliSearch client and TaskService are created once with the initial host/apiKey so they never update when props change; make them reactive by recreating the MeiliSearch client and TaskService whenever the host or apiKey props change (use Svelte reactive statements/$: to reassign the client and service based on host/apiKey), ensure any previous client/service is cleaned up if applicable, and export/update any derived values or stores so consumers receive the new instances.
+
+
+
+============================================================================
+File: src/lib/components/settings/FilterAttributeConfig.svelte
+Line: 23 to 28
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/FilterAttributeConfig.svelte around lines 23-28, the validation currently accepts whitespace-only entries; before performing the empty/duplicate check or adding/updating the attribute, trim the input string (e.g., const trimmed = inputValue.trim()) and use that trimmed value for validation, state updates, and emitted events so whitespace-only entries are rejected and stored values have no surrounding whitespace.
+
+
+
+============================================================================
+File: src/lib/design-system/molecules/ConfirmDialog.test.ts
+Line: 11 to 78
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/molecules/ConfirmDialog.test.ts around lines 11-78, the it.todo() blocks currently include expect.fail() bodies which causes them to run and fail; remove the function bodies so each it.todo call is bare (e.g. it.todo('description')) with no callback, repeating this for all it.todo blocks in the file so Vitest will skip them as intended.
+
+
+
+============================================================================
+File: src/lib/components/MeiliTaskWatcher.svelte
+Line: 5 to 14
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/MeiliTaskWatcher.svelte around lines 5 to 14, getContext('taskService') can return undefined and calling getAllTasks() will throw at runtime; update the code to check the result of getContext and handle the undefined case — either provide a fallback taskService (a minimal object with a noop getAllTasks returning an empty array/Promise) or throw a clear error/log and return early from the component before calling getAllTasks; use optional chaining or an explicit if (!taskService) branch to avoid calling methods on undefined.
+
+
+
+============================================================================
+File: src/lib/components/settings/SynonymManager.svelte
+Line: 10 to 18
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/SynonymManager.svelte around lines 10 to 18, the add-term logic must validate input: trim newTerm and use that trimmed value as the dictionary key; filter and trim each synonym, remove empty strings and duplicates, then if the resulting synonymList is empty abort and show an error; before adding, check if the trimmed term already exists in the dictionary and either prevent overwrite (show validation error) or require explicit confirmation; only insert the cleaned synonymList into the dictionary when all validations pass.
+
+
+
+============================================================================
+File: src/lib/features/settings/FilterAttributeConfig.svelte
+Line: 12 to 17
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+In src/lib/features/settings/FilterAttributeConfig.svelte around lines 12-17 and also apply the same change for lines 23-28, trim the input value before validation and adding: compute a trimmed value (e.g., const val = newFilterable.trim()), use that trimmed value for the empty check and includes check, push/add the trimmed value to filterableAttributes, and then clear the original input (set newFilterable = '').
+
+
+
+============================================================================
+File: src/lib/features/tasks/MeiliTaskWatcher.test.ts
+Line: 11 to 73
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/tasks/MeiliTaskWatcher.test.ts around lines 11 to 73, remove the incorrect expect.fail() calls inside all it.todo() blocks so the todos remain placeholders; replace each block like it.todo('desc', () => { expect.fail('...') }) with a bare it.todo('desc') and do this for every it.todo in the file so they are skipped by Vitest as intended.
+
+
+
+============================================================================
+File: src/lib/components/MeiliProvider.svelte
+Line: 7
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+In src/lib/components/MeiliProvider.svelte around line 7, the component destructures props without type annotations; replace the destructured props with explicit TypeScript-annotated prop declarations by adding  (if not present) and declaring each prop as export let propName: Type; choose precise types (string, number, boolean, specific interfaces or Meili types) or union/Record as appropriate, import any needed types at the top, and update any usages to match the renamed/annotated props so the component has explicit, type-safe prop definitions.
+
+
+
+============================================================================
+File: src/lib/components/WebhookManager.svelte
+Line: 162 to 166
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/WebhookManager.svelte around lines 162 to 166, the input/select uses vanilla onchange attribute which is incorrect in Svelte; change the attribute to the Svelte directive on:change and keep the same handler expression (e.g., on:change="{handleChange}" or on:change="{(e) => ...}") so the event is registered correctly; update any other similar occurrences in that block to use on:... Svelte syntax.
+
+
+
+============================================================================
+File: src/lib/components/settings/EmbedderConfig.svelte
+Line: 16
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/EmbedderConfig.svelte around lines 16 and 86-109, the component's sources array includes 'ollama' and 'rest' but there are no conditional UI blocks for them, so users can select those sources without configuration fields; add conditional blocks for source === 'ollama' and source === 'rest' mirroring the pattern used for openAi/huggingFace/userProvided: render inputs bound to the component state for the typical settings (for ollama: model, base URL/host, port, useTLS toggle, optional api key/header, and timeout; for rest: base URL, path/endpoint, method, headers (key/value list), apiKey/token input, and timeout), include validation/required flags consistent with other blocks, emit or bind changes to the same config object the component uses, and ensure the new fields follow existing styling/labels and are included in any save/serialize logic so those settings persist.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Tooltip.test.ts
+Line: 11 to 58
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Tooltip.test.ts around lines 11 to 58, each it.todo(...) placeholder incorrectly contains an expect.fail(...) call which causes the test to run and fail; remove the expect.fail(...) lines so each it.todo remains an empty placeholder (i.e., keep the it.todo('description') calls but delete their function bodies that call expect.fail), and repeat this for all it.todo blocks in the file.
+
+
+
+============================================================================
+File: src/lib/features/security/KeyManager.svelte
+Line: 119 to 130
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/security/KeyManager.svelte around lines 119 to 130, the permissions checkbox grid is missing controls for settingsGet, tasksGet, and keysCreate; add three corresponding checkbox labels inside the .checkbox-grid with inputs bound to permissions.settingsGet, permissions.tasksGet, and permissions.keysCreate respectively (use the same } /> DisplayText pattern and matching display text like "Get Settings", "Get Tasks", and "Create Keys") so users can toggle those permissions from the UI.
+
+
+
+============================================================================
+File: src/lib/design-system/organisms/TaskTable.svelte
+Line: 3
+Type: potential_issue
+
+
+
+
+============================================================================
+File: src/lib/utils/token.ts
+Line: 133 to 151
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/utils/token.ts around lines 133 to 151, the function validateTenantToken only checks JWT expiration but its name implies full signature validation; rename it to isTokenExpired (or checkTokenExpiration) to reflect its limited scope, update the JSDoc to state it only parses the token and verifies exp, change the exported name and any local references/usages across the repo to the new name, and run/update tests and imports so nothing breaks.
+
+
+
+============================================================================
+File: src/lib/components/BackupManager.svelte
+Line: 43 to 55
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/BackupManager.svelte around lines 43 to 55, the catch blocks lack a proper type guard and duplicate logic between createDump and createSnapshot; update error handling to set error = e instanceof Error ? e.message : 'An unknown error occurred' (or similar) and consolidate the two functions into a single createBackup(type: 'dump' | 'snapshot') that prompts the appropriate confirmation, sets loading=true, invokes client.createDump() or client.createSnapshot() based on type, submits the returned task to taskService.submitTask(), calls fetchRecentBackups() on success, and always clears loading in finally.
+
+
+
+============================================================================
+File: src/lib/components/SystemHealth.svelte
+Line: 52 to 55
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/SystemHealth.svelte around lines 52 to 55, startPolling may create duplicate intervals if called while one is already active; change startPolling to check an existing interval id and return early (or clear it) before creating a new setInterval, store the interval id in a component-scoped variable, ensure stopPolling clears and nullls the interval id, and make sure onDestroy also clears the interval to prevent leaks.
+
+
+
+============================================================================
+File: src/lib/components/IndexSwapper.svelte
+Line: 15 to 18
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/IndexSwapper.svelte around lines 15 to 18, the component currently only validates that both index fields are non-empty but does not guard against the user selecting the same index for both sides. Add a validation that compares the two selected index identifiers (e.g., indexA === indexB) and treat that as invalid: before invoking the swap handler, return early and surface an error message or set a validation state (and disable the swap button) indicating "Cannot swap the same index"; ensure this check runs alongside the existing non-empty checks so a swap is prevented when the two indexes are identical.
+
+
+
+============================================================================
+File: src/lib/features/settings/MeiliSettings.svelte
+Line: 25 to 34
+Type: potential_issue
+
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/LoadingSpinner.svelte
+Line: 7 to 14
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/LoadingSpinner.svelte around lines 7-14, the spinner markup has no ARIA attributes or readable label for screen readers; add role="status" and aria-live="polite" (and aria-busy="true" if the component indicates loading state) to the outer spinner container, include a visually-hidden text node such as "Loading…" for screen readers, and mark the decorative inner divs with aria-hidden="true" so assistive tech ignores them; ensure the visible styling is unchanged and the hidden text uses an existing or new sr-only CSS class.
+
+
+
+============================================================================
+File: src/lib/design-system/organisms/LogViewer.svelte
+Line: 3
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/organisms/LogViewer.svelte around line 3, the prop uses any (export let data: any = {}); replace it with a concrete TypeScript interface describing the actual shape used in this component (e.g., timestamp, level, message, meta, entries, etc.). Define and export an interface (or import an existing one) named something like LogViewerData, update the prop to export let data: LogViewerData (give a safe default via type assertion or a default object matching the interface), and update any internal usages to match the interface fields to restore type safety.
+
+
+
+============================================================================
+File: src/lib/components/BatchMonitor.svelte
+Line: 112 to 116
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/BatchMonitor.svelte around lines 112 to 116, the progress element uses max="100" but writeChannelCongestion is a 0.0–1.0 ratio from MeiliSearch; fix by making the value and max consistent: either multiply writeChannelCongestion by 100 when binding to the progress value (e.g., value={writeChannelCongestion * 100}) or change the progress max to "1" and leave the raw ratio; update any displayed percentage text accordingly (multiply by 100 and append “%” if you choose the 100-max approach).
+
+
+
+============================================================================
+File: src/lib/components/MeiliSettings.svelte
+Line: 29 to 30
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/MeiliSettings.svelte around lines 29-30 (and also apply the same fix at lines 48-49), the code accesses e.message on a catch variable typed as any; update the error handling to safely extract a message by checking if the caught value is an Error (use e instanceof Error ? e.message : String(e)) or otherwise JSON/stringify it, and use that safeMessage in the logger/UI instead of directly using e.message so non-Error throws are handled without undefined or runtime issues.
+
+
+
+============================================================================
+File: src/lib/components/MeiliSettings.svelte
+Line: 19
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/MeiliSettings.svelte around line 19, the code uses the any type for MeiliSearch settings; replace it with a proper Settings type by importing it (e.g. import type { Settings } from 'meilisearch' or from ../meili/types/meilisearch) and use that type instead of any for the variable/prop/function signature; if the official SDK lacks a Settings export, create a local Settings interface reflecting the expected structure in ../meili/types/meilisearch, export it, and import it into this component, then update all usages to use the typed Settings to restore compile-time checks.
+
+
+
+============================================================================
+File: src/lib/meili/services/TypedIndex.test.ts
+Line: 11 to 60
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/meili/services/TypedIndex.test.ts around lines 11-60, the todo tests use expect.fail() inside it.todo blocks which causes them to run and fail; remove all expect.fail() calls from those it.todo(...) blocks so the tests remain as pure todos (no implementation) and are skipped by the test runner, leaving only the it.todo('...') calls with no function body.
+
+
+
+============================================================================
+File: src/lib/components/WebhookManager.svelte
+Line: 139
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/WebhookManager.svelte around line 139, the markup uses the incorrect vanilla JS attribute onclick, which Svelte does not recognize; replace onclick="..." with Svelte's on:click={...} directive (or on:click with a quoted string call if using inline code), ensuring you pass the same handler function or expression and adjust any event parameter usage to Svelte syntax.
+
+
+
+============================================================================
+File: src/lib/components/settings/VectorIndexConfig.svelte
+Line: 18 to 25
+Type: potential_issue
+
+
+
+
+============================================================================
+File: src/lib/design-system/molecules/FormField.svelte
+Line: 10 to 15
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/molecules/FormField.svelte around lines 10 to 15, the label always renders a for attribute even when id is an empty string which produces invalid HTML; update the template to only include the for attribute when id is truthy (e.g. conditionally render the attribute or wrap the label in an {#if id} branch) so that no for="" is emitted when id is empty, while preserving the existing required asterisk rendering.
+
+
+
+============================================================================
+File: src/lib/features/tasks/BatchMonitor.svelte
+Line: 3 to 5
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/tasks/BatchMonitor.svelte around lines 3 to 5, the relative imports use one-level-up paths that resolve to src/lib/features/types/... and src/lib/features/utils/..., causing module resolution failures; update the import paths to point to src/lib/types/meilisearch and src/lib/utils/api (e.g. remove the extra ../ so they import from ../../types/meilisearch and ../../utils/api relative to this file) so the module resolver finds the correct modules.
+
+
+
+============================================================================
+File: src/lib/components/settings/SearchDisplayConfig.svelte
+Line: 43 to 48
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/SearchDisplayConfig.svelte around lines 43 to 48, the displayed-attributes handling needs the same wildcard ('') support and whitespace trimming as elsewhere: detect if the input equals '' and treat that as the wildcard (preserve previous wildcard semantics), otherwise split the string on commas, trim each item, filter out empty strings, and assign the resulting array to the displayed attributes state; ensure any updates or saves serialize back consistently (use '*' only when the user provided it, otherwise join the cleaned array).
+
+
+
+============================================================================
+File: src/lib/components/settings/TypoToleranceEditor.svelte
+Line: 7 to 16
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/TypoToleranceEditor.svelte around lines 7 to 16, the $effect block mutates a $bindable prop which can cause reactivity issues; remove the entire $effect block if you've given the prop a full default structure at declaration, or move any initialization logic into the prop declaration (provide defaults there) instead of mutating the bound prop inside an effect so it is not changed at runtime by $effect.
+
+
+
+============================================================================
+File: src/lib/features/tasks/BatchMonitor.svelte
+Line: 56 to 59
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/tasks/BatchMonitor.svelte around lines 56 to 59, the duration formatter uses a falsy check (!ms) which treats 0 as absent and returns '-' incorrectly; change the condition to explicitly check for null/undefined (e.g., ms == null) so that 0 is formatted as "0.00s" while null/undefined still return '-'.
+
+
+
+============================================================================
+File: src/lib/components/settings/VectorIndexConfig.svelte
+Line: 10 to 15
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+In src/lib/components/settings/VectorIndexConfig.svelte around lines 10 to 15 there is an empty effect hook that contains only a comment and no executable logic; remove the entire effect block (including the comment) so no dead code remains, then save the file and run lint/tests to ensure no side effects.
+
+
+
+============================================================================
+File: src/lib/components/ExperimentalFeatures.svelte
+Line: 15 to 28
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/ExperimentalFeatures.svelte around lines 15 to 28, the component never clears the error state before starting a new fetch so a previous error message can persist after a successful retry; update the fetch-start logic to reset/clear the error variable (e.g., set error = null or '' depending on current state type) immediately before initiating the async fetch, and ensure any finally/cleanup path preserves that reset only if no new error is set during the request.
+
+
+
+============================================================================
+File: src/lib/components/HybridSearchTester.svelte
+Line: 82 to 86
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/HybridSearchTester.svelte around lines 82-86, the debounce timer is never cleared when the component unmounts; add a Svelte 5 rune-based effect that sets the debounce timer and returns a cleanup function to clearTimeout the pending timer ID so it cannot fire after unmounting; store the timer ID in a local variable inside the effect and ensure the cleanup runs on re-run/unmount to prevent memory leaks and stray callbacks.
+
+
+
+============================================================================
+File: src/lib/features/settings/MeiliSettings.svelte
+Line: 19
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/settings/MeiliSettings.svelte around line 19, replace the loose any with a concrete Settings type: import or declare a Settings interface that describes the expected shape of the settings (fields, types and optionality), update the state generic to $state and ensure the initial value matches Settings (provide sensible defaults or cast the empty object to Settings only if safe). If a shared Settings type already exists, import it from its module (e.g. src/lib/features/settings/types) and use that; otherwise add a local/exported interface and use it in the $state generic.
+
+
+
+============================================================================
+File: src/lib/services/TypedIndex.ts
+Line: 268 to 276
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/services/TypedIndex.ts around lines 268-276 (also apply same changes at 292-297 and 304-309): the code directly accesses the internal SDK property (this.index as any).httpRequest which is fragile; update the code to first check that httpRequest exists before using it and wrap the call in a try-catch to safely handle absence or runtime errors, falling back to a documented alternative or throwing a clear error; add a JSDoc note above the affected methods explaining the risk of relying on the internal httpRequest property and that a runtime check/try-catch is performed to handle SDK changes.
+
+
+
+============================================================================
+File: src/lib/components/settings/EmbedderConfig.svelte
+Line: 21 to 26
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/EmbedderConfig.svelte around lines 21 to 26, the validation incorrectly uses a falsy check (if (dimensions)) which rejects valid zero values; change the condition to explicitly check for null/undefined (e.g., if (dimensions !== null && dimensions !== undefined) or if (typeof dimensions === 'number') ) so zero is accepted, and keep any numeric validation (isFinite/>=0) intact to ensure only valid numeric dimensions pass.
+
+
+
+============================================================================
+File: src/lib/features/settings/MeiliSettings.svelte
+Line: 59 to 64
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/settings/MeiliSettings.svelte around lines 59–64, the template currently shows an error block with no retry option; add a Retry button inside the {:else if error} block that calls a new retry handler. Implement a retry function in the  that clears the error, sets isLoading=true, invokes the existing settings load/fetch routine (e.g., loadSettings or fetchSettings), and in finally sets isLoading=false; ensure the button is disabled while isLoading to avoid duplicate requests and that any thrown error is captured and assigned back to error for display.
+
+
+
+============================================================================
+File: src/lib/services/TaskService.test.ts
+Line: 214
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/services/TaskService.test.ts around line 214, the test declares an unused variable named callCount; remove the callCount declaration (and any related unused assignment) from the test to eliminate the unused-variable warning and keep the test focused only on used variables.
+
+
+
+============================================================================
+File: src/lib/components/ExperimentalFeatures.svelte
+Line: 38
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/ExperimentalFeatures.svelte around line 38, remove or replace the misleading comment that mentions an "optimistic update" (which is incorrect); update the comment to state that the UI updates only after the server response (a pessimistic/synchronous update pattern) or simply delete the comment so it no longer implies optimistic behavior.
+
+
+
+============================================================================
+File: src/lib/features/network/NetworkFederationConfig.test.ts
+Line: 11 to 74
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/network/NetworkFederationConfig.test.ts lines 11-74, the test cases use it.todo(...) but still pass a callback that calls expect.fail(), causing CI failures; remove the callbacks so each todo is declared as it.todo('description') with no function body, or if you want a placeholder test that should be skipped instead, replace the it.todo(...) callback form with it.skip('description', () => { / add notes here, no expect.fail / }); ensure no expect.fail() calls remain in these blocks.
+
+
+
+============================================================================
+File: src/lib/design-system/molecules/SearchInput.test.ts
+Line: 11 to 72
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/molecules/SearchInput.test.ts around lines 11 to 72, every it.todo currently contains a callback that calls expect.fail(), which causes CI failures; remove the callback bodies so each placeholder remains a plain todo. Replace instances like it.todo('desc', () => { expect.fail(...) }) with a single-argument it.todo('desc') for all listed tests (rendering, interactions, debouncing, accessibility), and remove any now-unused imports if they become unused.
+
+
+
+============================================================================
+File: src/lib/design-system/templates/AdminShell.test.ts
+Line: 11 to 82
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/templates/AdminShell.test.ts around lines 11 to 82, the it.todo blocks include expect.fail(...) which causes CI failures; remove the expect.fail(...) calls and leave the tests as plain it.todo('description') (or convert to it.skip('description') if you want a visible skipped test) so the todos don't execute failure assertions; apply the same change across other test scaffold files in this PR to prevent repeated CI failures.
+
+
+
+============================================================================
+File: src/lib/design-system/molecules/KeyValueRow.svelte
+Line: 35 to 53
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/molecules/KeyValueRow.svelte around lines 35 to 53, the copy button is currently gated by the truthiness check copyable && value, which unintentionally hides the button for valid falsy values like 0, false, or ''. Change the condition to explicitly check for null/undefined (e.g., copyable && value != null) so the button is shown for falsy but defined values, keeping existing click handler and accessibility attributes unchanged.
+
+
+
+============================================================================
+File: src/lib/components/BackupManager.svelte
+Line: 29 to 41
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/BackupManager.svelte around lines 29 to 41, the error handler reads error.message without a type guard; update the handler to check whether the caught value is an Error (instanceof Error) or has a string message property before accessing .message, and fall back to String(error) (or JSON.stringify when appropriate) when it is not; then use that sanitized message for logging/state so no unsafe property access occurs.
+
+
+
+============================================================================
+File: src/lib/utils/extended-api.ts
+Line: 383 to 387
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/utils/extended-api.ts around lines 383-387, the code currently sets processingTimeMs: 0 when the SDK doesn't provide a timing, which is misleading; update the FacetSearchResponse type to make processingTimeMs optional (processingTimeMs?: number) and change this builder to only include processingTimeMs when the SDK actually provides a value (e.g., check for undefined/null and conditionally add the property), and then update any call sites/types that assume it's always present.
+
+
+
+============================================================================
+File: src/lib/design-system/molecules/KeyValueRow.svelte
+Line: 14 to 26
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/molecules/KeyValueRow.svelte around lines 14 to 26, the guard if (!copyable || !value) return; prevents copying legitimate falsy values like 0 or false; change the check to only bail out for null/undefined (e.g. if (!copyable || value == null) return;) so falsy-but-valid values can be copied, keep using String(value) when writing to clipboard and leave error handling/timeouts as-is.
+
+
+
+============================================================================
+File: src/lib/components/BackupManager.svelte
+Line: 12 to 27
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/BackupManager.svelte around lines 12 to 27, the catch block currently treats the caught value as any and directly accesses .message; change the catch to accept unknown, add a type guard to check if the value is an instance of Error (or has a string message property) and only then use error.message, otherwise derive a safe string (e.g., String(err) or JSON.stringify(err)) for logging/state; ensure the component uses that safe string when setting error state or displaying it.
+
+
+
+============================================================================
+File: src/lib/design-system/organisms/IndexSettingsPanel.svelte
+Line: 3
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/organisms/IndexSettingsPanel.svelte around line 3, replace the loose "any" type on the exported prop with a concrete TypeScript interface: define an interface (either in this file above the component or in a shared types file and import it) that captures the expected shape/fields of data (add optional properties if some fields may be missing), then change the prop signature to use that interface (and initialize to a typed default or use a cast). Ensure you update any internal usages to match the typed fields and export/import the interface where appropriate.
+
+
+
+============================================================================
+File: src/lib/components/settings/SearchDisplayConfig.svelte
+Line: 13 to 20
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/SearchDisplayConfig.svelte around lines 13 to 20, the component currently allows '' and specific attributes to coexist and doesn't trim whitespace, causing redundancy and distinct-but-equal entries; change the add/submit logic so that input is trimmed, normalized, and deduplicated, and implement mutual exclusivity: if the user adds a specific attribute when '' exists, remove '' automatically; if the user adds '' when any specific attributes exist, clear all specific attributes and keep only '*'; update any state/props and UI feedback accordingly and add tests for trimming, deduplication, and the two mutual-exclusion transitions.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/LoadingSpinner.svelte
+Line: 73 to 80
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/LoadingSpinner.svelte around lines 73–80, the spinner keyframes create a continuous rotation that ignores user motion preferences; add a media query for prefers-reduced-motion to disable or suppress the animation for users who request reduced motion. Specifically, keep the keyframes but add an @media (prefers-reduced-motion: reduce) block that sets the spinner element’s animation to none (or to a non-animating state) using a selector matching the spinner class/element (use !important if necessary) so the rotation is turned off when the user prefers reduced motion.
+
+
+
+============================================================================
+File: src/lib/services/BatchService.ts
+Line: 269 to 283
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/services/BatchService.ts around lines 269 to 283, the finally block unconditionally throws a new MlsBatchError which will overwrite any exception already thrown in the try/catch (e.g., streamError at line 244). Change the control flow to preserve an existing exception: capture any caught exception into a local variable in the catch block, and in finally only throw a new MlsBatchError when no previous exception exists (or attach/aggregate the new error information onto the existing exception and rethrow it). Ensure you rethrow the original error if present, otherwise throw the MlsBatchError with the collected errors.
+
+
+
+============================================================================
+File: src/lib/features/backup/BackupManager.svelte
+Line: 12
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/backup/BackupManager.svelte around line 12, the getContext call uses the any type which disables TypeScript checking; replace it by declaring or importing a proper TaskService interface (with the methods/properties the component uses) and use getContext('taskService') instead, or import an existing TaskService type and apply it; update any local usages to conform to the interface and add the necessary import statement so the compiler enforces correct types.
+
+
+
+============================================================================
+File: src/lib/components/ExperimentalFeatures.svelte
+Line: 30 to 41
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/ExperimentalFeatures.svelte around lines 30 to 41, the toggle handler allows concurrent requests which can cause race conditions and inconsistent UI state; add an in-flight tracking mechanism (e.g., a Set or Map keyed by feature id) and check it at the start of the handler to ignore or debounce additional toggles while a request for that feature is pending, mark the feature as in-flight before sending the request, await the response, update state only after the awaited response, and finally remove the feature from the in-flight tracker in both success and error paths so subsequent toggles are allowed.
+
+
+
+============================================================================
+File: src/lib/components/settings/EmbedderConfig.svelte
+Line: 58 to 62
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/EmbedderConfig.svelte around lines 58 to 62, the template preview always appends "..." even when the template is 30 characters or shorter; change the truncation logic to only append "..." when the template length exceeds 30 characters — compute a preview = template.length > 30 ? template.slice(0, 30) + "..." : template (optionally trimmed), and use that preview in the template display so short templates are shown without ellipsis.
+
+
+
+============================================================================
+File: src/lib/services/BatchService.ts
+Line: 199 to 201
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/services/BatchService.ts around lines 199-201 (and apply the same fix at 234-236 and 253-255), processDocumentStream awaits background tasks but does not verify whether the awaited task failed; replicate the same post-await failure check used in processBatches (lines 106-108): after each await of the task, check the task failure/status flag (or task.error) and handle it the same way (throw or propagate the error / log and return) so failed tasks aren’t silently treated as successful.
+
+
+
+============================================================================
+File: src/lib/components/KeyManager.svelte
+Line: 84 to 92
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+In src/lib/components/KeyManager.svelte around lines 84 to 92, the key deletion handler needs an explicit admin-rights guard and should reset the error state after a successful delete; at the top of the function add a check using hasAdminRights (return early or set a permission error if false) and after the delete completes successfully clear the component's error state (e.g., set error = null/undefined/'' consistent with existing state shape) so the UI reflects success and previous errors are removed.
+
+
+
+============================================================================
+File: src/lib/components/MeiliSettings.svelte
+Line: 25 to 34
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/MeiliSettings.svelte around lines 25 to 34, the early return when !indexUid leaves isLoading stuck true; before returning set isLoading = false (and optionally set an error/empty-state variable or clear settings) so the UI can render the appropriate error or empty state instead of "Loading settings..."; update the control flow so the loading flag is always cleared before any early exit.
+
+
+
+============================================================================
+File: src/lib/components/KeyManager.svelte
+Line: 119 to 130
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/KeyManager.svelte around lines 119 to 130, the UI is missing checkboxes for the permissions tasksGet and settingsGet which are present in the permissions state (lines ~25-26); add two checkbox controls to the existing permissions checkbox grid, each bound to permissions.tasksGet and permissions.settingsGet respectively (use bind:checked or the component's existing change handler), give them proper labels/aria-labels (e.g., "Tasks: Get" and "Settings: Get") and the same classes/styling as the other permission checkboxes so they appear in the grid and update the permissions state used to generate the actions array. Ensure their names/keys match the state property names so toggling them updates the state and the actions list consistently.
+
+
+
+============================================================================
+File: src/lib/utils/extended-api.ts
+Line: 396 to 418
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/utils/extended-api.ts around lines 396 to 418, the current implementation performs per-document fetches in a loop (lines ~403-410) causing an N+1 query antipattern; replace the loop with a single call to the MeiliSearch batch fetch endpoint (the endpoint invoked at line ~414) to retrieve all documents in one request, and implement a feature-detection or MeiliSearch version check before using the batch endpoint so older servers fall back to the per-document approach only when batch is unsupported; ensure the fallback preserves current behavior, handles errors/partial results, and keeps the same return shape as before.
+
+
+
+============================================================================
+File: src/lib/utils/api.ts
+Line: 97 to 99
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/utils/api.ts around lines 97–99, the webhook creation payload currently doesn't validate the url or headers; add input validation that (1) verifies url is a well-formed absolute URL (use the URL constructor or a validated regex) and reject or throw a clear validation error if invalid, (2) ensure headers is either undefined or a plain object whose keys and values are strings, reject non-string types, (3) strip or reject any header names/values containing CR/LF or other control characters to prevent header injection, and (4) enforce reasonable maximum lengths for url and header values; return/throw a validation error before calling the backend when any check fails.
+
+
+
+============================================================================
+File: src/lib/features/backup/BackupManager.contract.test.ts
+Line: 32 to 45
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/backup/BackupManager.contract.test.ts around lines 32-45 the test claims to verify integration with MeiliContext but only creates a mock and asserts BackupManager is defined; either (A) implement the integration test by rendering the Svelte component with a MeiliContext provider (or equivalent context injection), pass the mocked client, trigger the UI action that should call client.createSnapshot and assert that createSnapshot was called and the component responds accordingly, or (B) remove the misleading test until context-provider support is available, or (C) rename the test to accurately reflect it only checks the component export (e.g., "component is properly exported"); pick one and update the test accordingly.
+
+
+
+============================================================================
+File: src/lib/utils/api.ts
+Line: 1 to 2
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/utils/api.ts around lines 1 to 2, the WebhookUpdate type is imported but never used; edit the import statement to remove WebhookUpdate from the named imports (leave any other imported symbols intact), save the file and run the linter/TypeScript check to ensure no remaining unused-import errors.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Card.svelte
+Line: 20 to 31
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Card.svelte around lines 20 to 31, the .card-default and .card-outlined classes are duplicated (both use border: 1px solid #e0e0e0); choose one of the three fixes: remove one variant if they should be identical, change one’s styles to differentiate (e.g., adjust border color/width or add outline styling), or document that one is an alias of the other and add an alias comment; implement the chosen approach consistently across CSS and component props to avoid redundant rules.
+
+
+
+============================================================================
+File: src/lib/components/settings/LocalizedAttributesConfig.svelte
+Line: 24 to 27
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/settings/LocalizedAttributesConfig.svelte around lines 24 to 27, the locale code 'chi' is used but MeiliSearch expects ISO 639-3 three-letter codes; change the locale value from 'chi' to 'cmn' wherever it appears on line 27 so the component sends the correct 'cmn' code to the localizedAttributes API.
+
+
+
+============================================================================
+File: src/lib/components/KeyManager.svelte
+Line: 35 to 48
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/KeyManager.svelte around lines 35 to 48, the component sets an error state on failed operations but never clears it on success; update the fetch and operation success paths (and/or at the start of each async action) to reset the error state (e.g., set error = null or '') so previous error messages are removed after a successful fetch or action, ensuring the UI only shows current errors.
+
+
+
+============================================================================
+File: src/lib/services/TypedIndex.ts
+Line: 353 to 370
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/services/TypedIndex.ts around lines 353 to 370, the type guard isValidDocument currently claims doc is T but only checks non-null object and primary key presence; change it to accurately reflect its checks by renaming it to hasRequiredPrimaryKey and updating its signature to return boolean (not a type predicate), or alternatively keep the name but change the return type to boolean and add a clear JSDoc comment stating it only validates presence of the configured primary key (not full structural conformance to T); update all call sites to handle the weaker guarantee (e.g., perform full validation where necessary or cast after explicit checks) and add tests covering both positive and negative cases for primary key presence.
+
+
+
+============================================================================
+File: src/lib/components/LogStreamer.svelte
+Line: 139
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/LogStreamer.svelte around line 139, the Clear button currently empties visible log lines but leaves the live stream running, which can confuse users; change the Clear button to either (A) stop the stream first then clear — call the existing stopStreaming/stop function (or set isStreaming=false and clear interval/reader) before setting logLines=[] and update any related reactive state, or (B) keep current behavior but make it explicit by changing the button label to “Clear (keep streaming)” or add a tooltip/aria-label explaining that streaming will continue; implement one of these, and ensure the component emits or updates relevant state (events/props) so parent components know streaming stopped if you choose option A.
+
+
+
+============================================================================
+File: src/lib/utils/api.ts
+Line: 101 to 103
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/utils/api.ts around lines 101-103, the delete webhook function uses the id directly in the URL without validation; add a guard that verifies id is present (non-empty string) and matches the expected format (e.g., UUID or allowed chars) and throw or return a rejected error if invalid, then use encodeURIComponent(id) when constructing the URL to prevent malformed requests.
+
+
+
+============================================================================
+File: src/lib/features/settings/TypoToleranceEditor.svelte
+Line: 7 to 16
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/settings/TypoToleranceEditor.svelte around lines 7–16, the current $effect sets typoTolerance defaults asynchronously which leaves properties (minWordSizeForTypos, disableOnWords, disableOnAttributes) undefined on first render and can crash handlers; fix by initializing typoTolerance with the full default object at declaration (so fields exist immediately) and/or defensively initialize or guard used subfields inside handlers (e.g., ensure disableOnWords is an array and minWordSizeForTypos is an object before using or mutate) so functions like addDisabledWord cannot operate on undefined values.
+
+
+
+============================================================================
+File: src/lib/components/MeiliProvider.svelte
+Line: 19 to 37
+Type: potential_issue
+
+
+
+
+============================================================================
+File: src/lib/features/settings/VectorIndexConfig.svelte
+Line: 25
+Type: potential_issue
+
+
+
+
+============================================================================
+File: src/lib/features/indexes/IndexSwapper.svelte
+Line: 32 to 33
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/indexes/IndexSwapper.svelte around lines 32-33, the catch currently uses "e: any" and assigns error = e.message; change the catch to use "e: unknown" and safely extract a message (e.g. check if e is an Error via "e instanceof Error" and use e.message, otherwise convert to string) so you preserve type safety and avoid unsafe property access; update the error assignment to use that safe extraction.
+
+
+
+============================================================================
+File: tests/integration/meili-provider.integration.test.ts
+Line: 13 to 62
+Type: potential_issue
+
+Prompt for AI Agent:
+In tests/integration/meili-provider.integration.test.ts around lines 13 to 62, several it.todo blocks include a callback that calls expect.fail(), which causes tests to fail in CI; remove the callback-and-expect.fail usage so each todo is a bare it.todo('description') statement, or if you want to keep a placeholder with more context use it.skip('description', () => { / optional notes / }) but ensure no expect.fail() remains in these blocks so the test runner does not treat them as failures.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/ErrorMessage.svelte
+Line: 6 to 10
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/ErrorMessage.svelte around lines 6–10 the local visible flag is never reset when the message prop changes, so once dismissed the component won't reappear for new messages; fix by either (preferred) adding a reactive watcher that sets visible = true whenever message changes (e.g. run code when message updates to reset visibility) or (alternative) make visibility externally controllable by exposing a visible prop (and/or two-way binding) and emitting a dismiss event so the parent can reset visibility when a new message arrives.
+
+
+
+============================================================================
+File: src/lib/components/NetworkFederationConfig.svelte
+Line: 82 to 83
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/NetworkFederationConfig.svelte around lines 82-83, the catch error is currently typed as any and .message is accessed directly; change the catch signature to use unknown (or keep any but narrow it) and handle it safely by checking instanceof Error before reading .message, otherwise use a fallback (e.g., String(error) or a default message). Update logging/display to use the safely extracted message variable so null/undefined access is avoided.
+
+
+
+============================================================================
+File: src/lib/components/NetworkFederationConfig.svelte
+Line: 38 to 39
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/NetworkFederationConfig.svelte around line 177, the button's disabled condition only checks !newRemoteUrl || !newRemoteName but addRemote returns early if any of newRemoteUrl, newRemoteName, or newRemoteApiKey is empty; update the button's disabled expression to include the API key check (e.g., !newRemoteUrl || !newRemoteName || !newRemoteApiKey) so the button state matches the function logic.
+
+
+
+============================================================================
+File: src/lib/components/KeyManager.svelte
+Line: 50 to 82
+Type: potential_issue
+
+
+
+
+============================================================================
+File: src/lib/meili/utils/token.ts
+Line: 16
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/meili/utils/token.ts around line 16, the SearchRules type incorrectly includes the tuple union "['']"; remove that union and make SearchRules a plain mapping (Record) so keys may include the string "" as a wildcard; update any usages or tests that relied on the tuple form to use an object with a '*' key instead.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Toggle.svelte
+Line: 10 to 14
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Toggle.svelte around lines 10-14, the handler redundantly assigns checked = target.checked even though bind:checked already updates the variable; remove the checked = target.checked line and instead just call the callback with the new value (e.g., onChange?.(target.checked) or onChange?.(checked)) so the handler no longer mutates the bound variable.
+
+
+
+============================================================================
+File: src/lib/features/webhooks/WebhookManager.svelte
+Line: 182
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+In src/lib/features/webhooks/WebhookManager.svelte around line 182, the event handler uses Svelte 4 syntax on:click while the component uses Svelte 5 runes; change the attribute to the Svelte 5 form onclick and keep the rest of the binding (disabled={loading || !newUrl}) unchanged so the component uses consistent Svelte 5 event handler syntax.
+
+
+
+============================================================================
+File: src/lib/features/settings/VectorIndexConfig.svelte
+Line: 10 to 15
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+In src/lib/features/settings/VectorIndexConfig.svelte around lines 10 to 15, there's an empty $effect block that does nothing; remove the entire $effect(() => { ... }); block (including its comment) to eliminate dead code and update any imports or linting artifacts if they become unused as a result.
+
+
+
+============================================================================
+File: src/lib/components/NetworkFederationConfig.svelte
+Line: 52 to 54
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/NetworkFederationConfig.svelte around lines 52 to 54, the API key validation currently enforces a restrictive character set and a 32-character minimum; change it to require a minimum of 16 bytes (measured in UTF-8) and remove the /^[A-Za-z0-9_-]+$/ style regex check so any valid UTF-8 string is accepted; update the validation logic to compute new TextEncoder().encode(key).length >= 16 and adjust the error message to mention "at least 16 bytes" rather than "32 characters".
+
+
+
+============================================================================
+File: src/lib/features/settings/VectorIndexConfig.svelte
+Line: 27 to 38
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/settings/VectorIndexConfig.svelte around lines 27 to 38, the updateConfig function currently converts hnswConfig values directly which can yield NaN and replaces the entire default object losing other properties; validate the numeric conversions (parseInt/parseFloat or Number and isFinite) and fall back to sensible defaults when conversion fails, and preserve existing default properties by shallow-spreading the existing vectorIndexes.default and only updating type and the nested hnsw fields so unspecified keys are retained.
+
+
+
+============================================================================
+File: tests/integration/service-client.integration.test.ts
+Line: 13 to 23
+Type: potential_issue
+
+Prompt for AI Agent:
+In tests/integration/service-client.integration.test.ts around lines 13 to 23, the tests use it.todo() with callbacks containing expect.fail(), but it.todo() never executes its callback; change each placeholder to either use it.todo() with no callback (to mark as TODO and not execute), or replace it.todo(..., () => {...}) with it.skip(..., () => {...}) or it(..., () => { expect.fail(...) }) depending on whether you want non-executing markers or failing/skipped tests; update all three occurrences consistently to the chosen approach.
+
+
+
+============================================================================
+File: src/lib/components/NetworkFederationConfig.svelte
+Line: 27 to 32
+Type: potential_issue
+
+
+
+
+============================================================================
+File: src/lib/components/NetworkFederationConfig.svelte
+Line: 103 to 104
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/NetworkFederationConfig.svelte around lines 103-104, the catch block assumes the caught error has a .message property (typed as any); change the catch to handle unknown safely by treating the caught value as unknown and extracting a message with a type guard: if (err instanceof Error) use err.message, else coerce with String(err) or JSON.stringify(err) for objects; update the error handling/logging to use that extracted message instead of directly accessing .message.
+
+
+
+============================================================================
+File: src/lib/design-system/molecules/ConfirmDialog.svelte
+Line: 46
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/molecules/ConfirmDialog.svelte around line 46, the backdrop div's on:keydown won't reliably receive keyboard events because divs aren't focusable; remove the on:keydown from the backdrop and instead add a global keydown listener using Svelte's  (e.g., ) so Escape is handled whenever the dialog is open, and ensure the handler only runs when the dialog is visible; optionally, also manage focus when opening the dialog (focus the dialog or first focusable element) for accessibility.
+
+
+
+============================================================================
+File: src/lib/components/LogStreamer.svelte
+Line: 31 to 42
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/components/LogStreamer.svelte around lines 31 to 42, the fetch call lacks a timeout and can hang indefinitely; modify the code to use an AbortSignal with a timeout: prefer AbortSignal.timeout(timeoutMs) when available (feature-detect), otherwise create an AbortController and set a setTimeout to call controller.abort() after the timeout; pass controller.signal to fetch, clear the timeout on success or error, and handle the abort error path so the UI doesn't hang.
+
+
+
+============================================================================
+File: NEW_FEATURES.md
+Line: 60 to 62
+Type: potential_issue
+
+Prompt for AI Agent:
+In NEW_FEATURES.md around lines 60 to 62, the example uses a convoluted pattern calling onFinish() after wrapTaskPromise(Promise.resolve(task)) which conflicts with other examples that call .onFinish() directly on task promises; standardize the docs and API usage by choosing one consistent pattern and updating all examples—either document and demonstrate calling .onFinish() directly on the promise returned by addDocuments (update examples and remove wrapTaskPromise usage), or document that wrapTaskPromise must be used and modify the other examples to include it; ensure the chosen pattern is applied uniformly across the file and any referenced lines (e.g., lines ~350-351) and update explanatory text to match.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/TextField.svelte
+Line: 29
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/TextField.svelte around lines 29, 46, 52, 56 and 62, the component outputs invalid IDs/attributes when the prop id is undefined (label for, aria-describedby and error/hint span ids become "undefined-..."). Generate a stable unique id when id is not provided (e.g., create one once per component instance) and use that computedId everywhere: label for={computedId}, input id={computedId}, aria-describedby should reference ${computedId}-error and ${computedId}-hint only when the corresponding elements exist, and error/hint spans should use those ids; ensure you do not include "undefined-..." by conditionalizing addition of aria-describedby entries when error/hint are present.
+
+
+
+============================================================================
+File: src/lib/features/webhooks/WebhookManager.svelte
+Line: 19 to 33
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/webhooks/WebhookManager.svelte around lines 19 to 33, the availableEvents array lists Meilisearch events (documents. and granular tasks.) that Meilisearch does not emit; replace this hardcoded list with only the supported task-completion webhook event(s) or clearly separate/customize application-level events. Remove unsupported documents. and per-state tasks. entries, keep only the task-completed/task-finished representation that Meilisearch sends (or load events from a config/constant used by the app), and add a comment noting any remaining entries are app-level events if you must keep them.
+
+
+
+============================================================================
+File: src/lib/utils/extended-api.ts
+Line: 193 to 197
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/utils/extended-api.ts around lines 193 to 197, the code currently uses (client as any).httpRequest which bypasses TypeScript safety; instead update the function signature to accept a properly typed MeiliSearch client interface (or create a local interface with the httpRequest property and its methods), or add a type guard that checks client has an httpRequest object with the methods get/post/patch/delete/put before accessing it; change usages to use the narrowed type (or cast only after the guard) so callers get type-checked access to httpRequest and add runtime checks that throw a clear error if httpRequest or required methods are missing.
+
+
+
+============================================================================
+File: src/lib/meili/services/TaskService.ts
+Line: 80
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+In src/lib/meili/services/TaskService.ts around lines 80, 88, 114 and 123 the code uses unsafe double-casting "as unknown as MeiliTask" which bypasses TypeScript safety; fix by aligning types: import Task from "meilisearch" and either (a) replace MeiliTask with the native Task type if no extra fields are required, or (b) declare MeiliTask extends Task (export interface MeiliTask extends Task {}) and use that, or (c) implement a small converter that maps a Task to MeiliTask by explicitly copying fields and return the properly typed object, then use the typed value when calling this.tasks.set and elsewhere instead of the double-cast.
+
+
+
+============================================================================
+File: tests/integration/public-api.integration.test.ts
+Line: 97 to 110
+Type: potential_issue
+
+Prompt for AI Agent:
+In tests/integration/public-api.integration.test.ts around lines 97 to 110, the test uses typeof MLS. which assumes those exports are runtime values; change each declaration to a plain type alias (e.g., type TestMeiliConfig = MLS.MeiliClientConfig) so the compiler treats them as type-only checks; if instead those symbols are supposed to be runtime values, update src/lib/index.ts to export them as values rather than only types.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Tooltip.svelte
+Line: 31 to 32
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Tooltip.svelte around lines 31-32 the component attaches on:focus/on:blur to a wrapper div which is not focusable by default, breaking keyboard accessibility for non-focusable slotted content; update the component to either require/document a focusable slotted child or make the wrapper keyboard-focusable (e.g., add tabindex="0" conditionally or unconditionally), or alternatively detect non-focusable slot content and forward/attach handlers to the first focusable child — pick one approach, update the component implementation accordingly, and add a clear comment in the file and the component docs explaining the chosen focusability requirement/behavior.
+
+
+
+============================================================================
+File: src/lib/meili/services/BatchService.ts
+Line: 269 to 283
+Type: potential_issue
+
+
+
+
+============================================================================
+File: src/lib/design-system/organisms/ApiKeyTable.svelte
+Line: 17 to 27
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/organisms/ApiKeyTable.svelte around lines 17 to 27 the table is missing an accessible caption or aria-label; add either a  describing the table (e.g., "API Keys") immediately inside the  element or add aria-label="API Keys" to the  tag, and include the provided .sr-only CSS class in the component's  block or a shared stylesheet so visually-hidden captions are available for screen reader users.
+
+
+
+============================================================================
+File: src/lib/meili/services/TaskService.ts
+Line: 90 to 100
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/meili/services/TaskService.ts around lines 90–100 the code adds a misleading placeholder task with status "enqueued" and type "unknown" when the initial fetch fails; instead, either rethrow the error to fail fast or (preferred) add an explicit fetch-failed state to MeiliTask and use it here: extend the MeiliTask status union (e.g., "fetch_failed"), store the error message and clear/nullable type, set that status on this.tasks for taskUid, do not mark it as enqueued or start polling, and update any consumers/UI to handle the new fetch-failed state accordingly so consumers do not assume the task is pending.
+
+
+
+============================================================================
+File: src/lib/design-system/molecules/SearchInput.svelte
+Line: 9 to 16
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+In src/lib/design-system/molecules/SearchInput.svelte around lines 9 to 16, the debounce timer created in handleInput isn't cleared when the component is destroyed; import Svelte's onDestroy and add an onDestroy handler that calls clearTimeout(timer) (ensure timer's type allows undefined/null or initialize to 0) so any pending timeout is cleared when the component unmounts, preventing onSearch from being invoked after destruction.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Tooltip.svelte
+Line: 27 to 34
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Tooltip.svelte around lines 27 to 34, the wrapper div incorrectly has role="tooltip"; remove that role attribute from the wrapper so it is semantically transparent (or replace with a more appropriate role if the wrapper must be interactive), and ensure the actual tooltip element on line 38 retains role="tooltip".
+
+
+
+============================================================================
+File: src/lib/utils/api.ts
+Line: 72 to 80
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/utils/api.ts around lines 72-80, the code accesses MeiliSearch private properties (httpRequest and config) which may break across SDK versions; replace private API usage by calling only supported public SDK methods or perform raw HTTP calls using a dedicated HTTP client (fetch/axios) constructed from documented client config (host, apiKey), add a runtime guard that throws a clear error if the client lacks required public methods, pin and document the tested MeiliSearch SDK version in package.json/README, and add unit/integration tests that exercise the /webhooks, /batches, and /network endpoints against the pinned SDK to catch future breaking changes.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Tooltip.svelte
+Line: 1 to 24
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Tooltip.svelte lines 1-24, the component doesn't clear the pending tooltip timeout on unmount; change tooltipTimeout to allow undefined (e.g. number | undefined), import onDestroy from 'svelte', and add an onDestroy handler that checks and clears the timeout (clearTimeout(tooltipTimeout)) and resets tooltipTimeout, ensuring any pending window.setTimeout is cancelled when the component is destroyed.
+
+
+
+============================================================================
+File: src/lib/features/settings/EmbedderConfig.svelte
+Line: 121
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/settings/EmbedderConfig.svelte around line 121, change the Svelte event binding from the on:click form to the onclick form to match the rest of the file (e.g., line 64); replace on:click={addEmbedder} with onclick={addEmbedder} so event handler syntax is consistent with Svelte 5 conventions.
+
+
+
+============================================================================
+File: src/lib/design-system/organisms/ApiKeyTable.svelte
+Line: 31
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/organisms/ApiKeyTable.svelte around line 31, the JSX uses key.uid.substring(0, 8) which will throw if key.uid is null/undefined; update the rendering to safely handle missing or short UIDs by checking/keying off key.uid (e.g. use optional chaining or nullish coalescing to default to an empty string or the full uid, then take up to 8 chars), and keep the existing fallback to key.name — ensure the expression never calls substring on null/undefined so it always renders either name, a truncated uid, or a sensible empty fallback.
+
+
+
+============================================================================
+File: src/lib/design-system/organisms/ApiKeyTable.svelte
+Line: 36
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/organisms/ApiKeyTable.svelte around line 36, the direct use of new Date(key.expiresAt) can produce "Invalid Date" in the UI; instead, construct the Date, check its validity (e.g., const d = new Date(key.expiresAt); if (isNaN(d.getTime())) show the fallback), and render d.toLocaleDateString() only when valid, otherwise fall back to 'Never' (or another graceful label) so malformed strings don't display "Invalid Date".
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Tooltip.svelte
+Line: 19 to 24
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Tooltip.svelte around lines 19–24, the code uses if (tooltipTimeout) which fails for a timeout ID of 0; change the condition to explicitly check for undefined/null (e.g., if (tooltipTimeout !== undefined && tooltipTimeout !== null) or if (tooltipTimeout != null)), call clearTimeout(tooltipTimeout) as before, and then reset tooltipTimeout (e.g., tooltipTimeout = undefined) after clearing so the timeout ID is correctly tracked.
+
+
+
+============================================================================
+File: src/lib/features/backup/BackupManager.svelte
+Line: 18 to 33
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/backup/BackupManager.svelte around lines 18 to 33, the call to client.getTasks uses an invalid option desc: true; remove desc or replace it with the MeiliSearch option reverse: false (or simply omit the parameter to use the default descending order) so the request uses a valid option name and returns tasks ordered by most recent first.
+
+
+
+============================================================================
+File: src/lib/meili/services/BatchService.ts
+Line: 216 to 244
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/meili/services/BatchService.ts around lines 216 to 244, the catch block creates streamError before attempting to flush the remaining batch and then also leaves batch unchanged so the finally block will try to flush it again; to fix this, move creation of the MlsBatchError until after attempting to process the remaining batch, push any finalError into the errors array if the final flush fails, clear or reset the batch (or set a flag indicating it has been flushed) after a successful or failed final attempt to prevent the finally block from reprocessing it, and then construct and throw the streamError including all accumulated errors so the final thrown error reflects the outcome of the final batch processing.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/EmptyState.svelte
+Line: 7 to 20
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/EmptyState.svelte around lines 7 to 20, the icon is rendered without accessibility semantics; update the component to either mark the icon as decorative by adding aria-hidden="true" to the icon container when the icon does not convey additional meaning, or accept an optional ariaLabel (e.g., iconAriaLabel) prop and, when provided, apply it as aria-label on the icon container and set role="img" so assistive tech reads it; ensure prop typing/defaults are added and update any usages/tests to pass the new prop where the icon conveys unique info.
+
+
+
+============================================================================
+File: src/lib/meili/services/BatchService.ts
+Line: 94 to 109
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/meili/services/BatchService.ts around lines 94-109, the code marks a batch as successful (pushes batchIndex into successfulBatchIndices and increments successfulBatches) before awaiting task completion; when waitForCompletion is true this can leave a failed batch recorded as successful. Fix by deferring the push/increment (and calling onBatchComplete) until after the waitForCompletion block verifies the task status is not 'failed' (i.e., await this.taskService.waitForTask(...) then check status and only then update successfulBatchIndices/successfulBatches and call onBatchComplete); if waitForCompletion is false keep the original immediate behavior. Ensure no duplicate updates occur and failed paths do not leave the index in successfulBatchIndices.
+
+
+
+============================================================================
+File: src/lib/features/health/SystemHealth.svelte
+Line: 21 to 37
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/health/SystemHealth.svelte around lines 21 to 37, the code assumes client.getExperimentalFeatures() always returns an object and that caught exceptions always have a message property; add a null/undefined check for features before reading features.metrics (treat missing features as metricsDisabled and avoid calling startPolling) and harden the catch by assigning error to e?.message ?? String(e) (or JSON.stringify(e) when appropriate) so error is never undefined; ensure loading is still set to false in finally.
+
+
+
+============================================================================
+File: src/lib/features/health/SystemHealth.svelte
+Line: 178 to 230
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/health/SystemHealth.svelte around lines 178-230, the SVG charts lack semantic labeling and ARIA attributes; wrap each chart in a  and add a visible  describing the chart, then make the  accessible by adding role="img" and aria-labelledby that references an internal  and  inside the SVG (unique ids per chart). Mark decorative elements (like background area paths or purely visual strokes) with aria-hidden="true" and focusable="false", and ensure interactive or meaningful elements are keyboard focusable if needed. Ensure the ids are unique (e.g., latency-title, latency-desc, dbsize-title, dbsize-desc) and that the aria-labelledby attributes point to those ids.
+
+
+
+============================================================================
+File: src/lib/features/health/SystemHealth.svelte
+Line: 39 to 50
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/health/SystemHealth.svelte around lines 39 to 50, the catch block in enableMetrics sets error = e.message without validating e, which can yield undefined; change the assignment to safely extract a message (for example: use e?.message ?? String(e) ?? 'Unknown error') so error always gets a string, or use a helper that normalizes the caught value to a string; update only the catch to perform this safe extraction and leave loading toggling and other logic intact.
+
+
+
+============================================================================
+File: src/lib/features/health/SystemHealth.svelte
+Line: 6
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/health/SystemHealth.svelte around line 6, getContext('meili') may return undefined and destructuring directly causes a runtime error; fix by first assigning the result to a temporary variable, check if it is defined, and either throw a clear error or provide a safe fallback (e.g. a default object with null/false client/hasAdminRights) before destructuring so the component never attempts to access properties on undefined.
+
+
+
+============================================================================
+File: src/lib/features/health/SystemHealth.svelte
+Line: 157 to 163
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/health/SystemHealth.svelte around lines 157 to 163, the colored dot indicator lacks semantic meaning for screen readers; add accessibility by giving the span a descriptive accessible name that reflects the current state—e.g. set role="img" and aria-label to {isIndexing ? 'Indexing' : 'Idle'} (or alternatively mark the dot aria-hidden="true" and add a visually hidden text node containing {isIndexing ? 'Indexing' : 'Idle'}), so screen readers receive the same status information as sighted users.
+
+
+
+============================================================================
+File: src/lib/meili/types/meilisearch.ts
+Line: 13
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/meili/types/meilisearch.ts around line 13 (MeiliTask.duration) and line 78 (Batch.duration), both duration fields are incorrectly typed as number; update both declarations to use type string to match MeiliSearch's ISO 8601 duration strings (e.g., "PT0.001192S") so the types are consistent with the API.
+
+
+
+============================================================================
+File: src/lib/meili/utils/extended-api.ts
+Line: 322 to 325
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/meili/utils/extended-api.ts around lines 322 to 325, the streamLogs function currently throws an MlsApiError synchronously while its signature promises a Promise void>, which is inconsistent; change the implementation to return a rejected promise instead (for example by making the function async and throwing the error or returning Promise.reject(new MlsApiError('streamLogs is not yet implemented.'))), so callers receive a rejected Promise rather than a synchronous exception.
+
+
+
+============================================================================
+File: src/lib/design-system/atoms/Select.svelte
+Line: 22
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/design-system/atoms/Select.svelte around line 22 (and update line 33) the aria-describedby currently interpolates an id that may be undefined; generate a unique id when none is provided (e.g., create a module-level counter or use crypto/random UUID on mount and assign to a local id variable) and use that generated id as the component id; then keep aria-describedby={error ? ${id}-error : undefined} but ensure id is always defined by default so it never becomes "undefined-error" and update the referenced line 33 to use the same resolved id value.
+
+
+
+============================================================================
+File: src/lib/features/monitoring/LogStreamer.svelte
+Line: 31 to 42
+Type: potential_issue
+
+Prompt for AI Agent:
+In src/lib/features/monitoring/LogStreamer.svelte around lines 31-42, the fetch call to ${host}/logs/stream has no timeout and can hang indefinitely; add a timeout by starting a timer (e.g. const timeoutId = setTimeout(() => streamController.abort(), TIMEOUT_MS)) before calling fetch, pass streamController.signal as the signal, and after fetch resolves or throws clear the timer (clearTimeout(timeoutId)); handle AbortError from the abort to surface a clean timeout error to the caller.
+
+
+
+============================================================================
+File: src/lib/features/provider/MeiliProvider.svelte
+Line: 19 to 37
+Type: potential_issue
+
+
+
+
+Review completed ✔
