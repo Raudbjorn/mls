@@ -3,7 +3,11 @@
     import type { MeiliContext } from '../../meili/types/meilisearch';
     import { createApiClient } from '../../meili/utils/api';
 
-    const { client, hasAdminRights } = getContext<MeiliContext>('meili');
+    const meiliContext = getContext<MeiliContext>('meili');
+    if (!meiliContext) {
+        throw new Error('SystemHealth must be used within a MeiliProvider');
+    }
+    const { client, hasAdminRights } = meiliContext;
     const api = createApiClient(client);
 
     let loading = $state(true);
@@ -29,8 +33,8 @@
             if (metricsEnabled) {
                 startPolling();
             }
-        } catch (e: any) {
-            error = e.message;
+        } catch (e: unknown) {
+            error = e instanceof Error ? e.message : String(e);
         } finally {
             loading = false;
         }
@@ -42,8 +46,8 @@
             await client.updateExperimentalFeatures({ metrics: true });
             metricsEnabled = true;
             startPolling();
-        } catch (e: any) {
-            error = e.message;
+        } catch (e: unknown) {
+            error = e instanceof Error ? e.message : String(e);
         } finally {
             loading = false;
         }
@@ -79,7 +83,7 @@
             const text = await response.text();
             parseMetrics(text);
             error = null;
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error('Error fetching metrics', e);
             // Don't show error to user constantly, maybe just log it
         }

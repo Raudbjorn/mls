@@ -24,8 +24,8 @@ describe('Card', () => {
       expect.fail('TODO: Test that padding prop affects internal spacing');
     });
 
-    it.todo('should render borderless variant', () => {
-      expect.fail('TODO: Test that bordered=false removes border styling');
+    it.todo('should render elevated variant without a border', () => {
+      expect.fail('TODO: Test that variant="elevated" correctly removes the border');
     });
   });
 

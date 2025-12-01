@@ -9,7 +9,6 @@
     let query = $state('');
     let semanticRatio = $state(0.5);
     let rankingScoreThreshold = $state<number | null>(null);
-    let rankingScoreThresholdInput = $state<number | null>(null);
     let embedder = $state('default');
     let filter = $state('');
     let facetsInput = $state('');
@@ -35,9 +34,6 @@
         isSearching = true;
         error = null;
         facetDistribution = null;
-
-        // Use the input value directly since it's now a number
-        rankingScoreThreshold = rankingScoreThresholdInput;
 
         try {
             const searchParams: any = {
@@ -114,7 +110,7 @@
                 <label>Ranking Score Threshold</label>
                 <input
                     type="number"
-                    bind:value={rankingScoreThresholdInput}
+                    bind:value={rankingScoreThreshold}
                     min="0"
                     max="1"
                     step="0.1"

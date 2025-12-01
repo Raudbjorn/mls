@@ -98,11 +98,11 @@ describe('Public API Contract', () => {
     // These are type-only exports, so we check they don't break compilation
     test('type exports compile correctly', () => {
       // If TypeScript compilation passes, these types are exported correctly
-      type TestMeiliConfig = typeof MLS.MeiliClientConfig;
-      type TestMeiliTask = typeof MLS.MeiliTask;
-      type TestMeiliContext = typeof MLS.MeiliContext;
-      type TestWaitOptions = typeof MLS.WaitOptions;
-      type TestBatchOptions = typeof MLS.BatchOptions;
+      type TestMeiliConfig = MLS.MeiliClientConfig;
+      type TestMeiliTask = MLS.MeiliTask;
+      type TestMeiliContext = MLS.MeiliContext;
+      type TestWaitOptions = MLS.WaitOptions;
+      type TestBatchOptions = MLS.BatchOptions;
 
       // This test passes if compilation succeeds
       expect(true).toBe(true);

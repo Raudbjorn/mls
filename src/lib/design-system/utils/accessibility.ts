@@ -209,11 +209,23 @@ export function isVisibleToScreenReader(element: HTMLElement): boolean {
   return true;
 }
 
+// Counter for fallback ID generation
+let __uniqueIdCounter = 0;
+
 /**
  * Generate unique ID for accessibility
  */
 export function generateUniqueId(prefix = 'mls'): string {
-  return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    // Use crypto.randomUUID for better uniqueness
+    const uuid = crypto.randomUUID();
+    // Take first 8 characters of UUID for shorter IDs
+    return `${prefix}-${uuid.substring(0, 8)}`;
+  } else {
+    // Fallback to counter-based approach
+    __uniqueIdCounter += 1;
+    return `${prefix}-${Date.now()}-${__uniqueIdCounter}`;
+  }
 }
 
 /**

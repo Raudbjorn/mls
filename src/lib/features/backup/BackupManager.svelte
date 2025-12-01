@@ -20,42 +20,43 @@
         try {
             const response = await client.getTasks({
                 types: ['dumpCreation', 'snapshotCreation'],
-                limit: 10,
-                desc: true
+                limit: 10
+                // Note: Tasks are sorted by descending uid by default
             });
             recentBackups = response.results;
             error = null;
-        } catch (e: any) {
-            error = e.message;
+        } catch (e: unknown) {
+            error = e instanceof Error ? e.message : String(e);
+        } finally {
+            loading = false;
+        }
+    }
+
+    async function createBackup(type: 'dump' | 'snapshot') {
+        const confirmationMessage = type === 'dump'
+            ? 'Create a new dump? This may take some time.'
+            : 'Create a new snapshot?';
+
+        if (!confirm(confirmationMessage)) return;
+
+        loading = true;
+        try {
+            const taskPromise = type === 'dump' ? client.createDump() : client.createSnapshot();
+            await taskService.submitTask(taskPromise);
+            await fetchRecentBackups();
+        } catch (e: unknown) {
+            error = e instanceof Error ? e.message : String(e);
         } finally {
             loading = false;
         }
     }
 
     async function createDump() {
-        if (!confirm('Create a new dump? This may take some time.')) return;
-        loading = true;
-        try {
-            await taskService.submitTask(client.createDump());
-            await fetchRecentBackups();
-        } catch (e: any) {
-            error = e.message;
-        } finally {
-            loading = false;
-        }
+        await createBackup('dump');
     }
 
     async function createSnapshot() {
-        if (!confirm('Create a new snapshot?')) return;
-        loading = true;
-        try {
-            await taskService.submitTask(client.createSnapshot());
-            await fetchRecentBackups();
-        } catch (e: any) {
-            error = e.message;
-        } finally {
-            loading = false;
-        }
+        await createBackup('snapshot');
     }
 
     onMount(() => {

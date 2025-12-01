@@ -101,8 +101,15 @@
     transition: opacity 0.15s ease;
   }
 
-  .tag__remove:hover {
+  .tag__remove:hover,
+  .tag__remove:focus-visible {
     opacity: 1;
+  }
+
+  .tag__remove:focus-visible {
+    outline: 2px solid var(--mls-primary-500, #2196f3);
+    outline-offset: 1px;
+    border-radius: 2px;
   }
 
   .tag--removable {

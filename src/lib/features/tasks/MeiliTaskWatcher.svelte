@@ -3,6 +3,9 @@
     import type { TaskService } from '../../meili/services/TaskService';
 
     const taskService = getContext<TaskService>('taskService');
+    if (!taskService) {
+        throw new Error('MeiliTaskWatcher must be used within a MeiliProvider context.');
+    }
     
     // Derived state for active tasks
     let activeTasks = $derived(
