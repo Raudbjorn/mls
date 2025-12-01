@@ -1,0 +1,1 @@
+export { default as IndexSwapper } from './IndexSwapper.svelte';

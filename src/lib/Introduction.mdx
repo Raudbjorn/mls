@@ -1,0 +1,118 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# MLS - MeiliSearch Library for Svelte
+
+Welcome to the MLS component library documentation. This Storybook showcases all the components available in the library, organized by our atomic design structure.
+
+## 🚀 Quick Start
+
+The fastest way to get started is with our Golden Paths:
+
+- **QuickStart** - Auto-detects capabilities and provides appropriate UI
+- **AdminConsole** - Full admin dashboard with one import
+- **SearchPlayground** - Interactive search testing interface
+
+```svelte
+import { QuickStart } from 'mls/golden-paths';
+
+<QuickStart
+  host="http://localhost:7700"
+  apiKey="your-key"
+/>
+```
+
+## 🏗️ Architecture
+
+MLS follows an **Atomic Design** pattern:
+
+### Design System
+- **Atoms** - Basic building blocks (Button, Badge, Input)
+- **Molecules** - Simple combinations (SearchInput, ConfirmDialog)
+- **Organisms** - Complex UI sections (TaskTable, ApiKeyTable)
+- **Templates** - Page layouts (AdminShell)
+
+### Features
+Complete, self-contained feature modules:
+- Backup management
+- Task monitoring
+- Settings configuration
+- Search testing
+
+### Golden Paths
+Zero-config components for instant productivity:
+- QuickStart
+- AdminConsole
+- SearchPlayground
+
+## 🎨 Theming
+
+All components support CSS variables for customization:
+
+```css
+--color-primary: #1976d2;
+--color-success: #4caf50;
+--color-error: #c62828;
+--color-surface: #ffffff;
+--color-text: #212121;
+```
+
+## 📦 Installation
+
+```bash
+npm install mls meilisearch
+```
+
+## 🔧 Basic Usage
+
+### Using Golden Paths (Easiest)
+```svelte
+<script>
+  import { AdminConsole } from 'mls/golden-paths';
+</script>
+
+<AdminConsole
+  host="http://localhost:7700"
+  apiKey="master-key"
+/>
+```
+
+### Using Feature Components
+```svelte
+<script>
+  import { MeiliProvider, BackupManager } from 'mls';
+</script>
+
+<MeiliProvider config={{ host, apiKey }}>
+  <BackupManager />
+</MeiliProvider>
+```
+
+### Using Design System
+```svelte
+<script>
+  import { Button, SearchInput } from 'mls/design-system';
+</script>
+
+<Button variant="primary">Click me</Button>
+<SearchInput placeholder="Search..." />
+```
+
+## 🧪 Testing
+
+The library includes:
+- Unit tests for all components
+- Contract tests for stable APIs
+- Property-based tests for domain logic
+- Integration tests for public API
+
+## 🛟 Support
+
+- [GitHub Issues](https://github.com/yourusername/mls/issues)
+- [Documentation](https://github.com/yourusername/mls/wiki)
+- [Examples](https://github.com/yourusername/mls-examples)
+
+## 📝 License
+
+MIT © Raudbjorn
