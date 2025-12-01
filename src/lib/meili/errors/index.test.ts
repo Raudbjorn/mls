@@ -1,99 +1,136 @@
 import { describe, it, expect } from 'vitest';
+import {
+  MlsError,
+  MlsApiError,
+  MlsTaskTimeoutError,
+  MlsRequestTimeoutError,
+  MlsBatchError,
+  MlsTokenError
+} from './index';
 
-/**
- * Error Classes Domain Tests
- *
- * Custom error types for the library.
- * Goal: "Domain rules are correct under a storm of random inputs."
- */
 describe('Error Classes', () => {
   describe('MlsError', () => {
-    it.todo('should extend Error', () => {
-      expect.fail('TODO: Test that MlsError is instanceof Error');
+    it('should extend Error', () => {
+      const err = new MlsError('test error');
+      expect(err).toBeInstanceOf(Error);
+      expect(err).toBeInstanceOf(MlsError);
     });
 
-    it.todo('should have correct name property', () => {
-      expect.fail('TODO: Test that error.name === "MlsError"');
+    it('should have correct name property', () => {
+      const err = new MlsError('test error');
+      expect(err.name).toBe('MlsError');
     });
 
-    it.todo('should include stack trace', () => {
-      expect.fail('TODO: Test that error.stack is populated');
+    it('should include stack trace', () => {
+      const err = new MlsError('test error');
+      expect(err.stack).toBeDefined();
+    });
+    
+    it('should store cause', () => {
+      const cause = new Error('root cause');
+      const err = new MlsError('wrapped', cause);
+      expect(err.cause).toBe(cause);
     });
   });
 
   describe('MlsApiError', () => {
-    it.todo('should include status code', () => {
-      expect.fail('TODO: Test that statusCode is accessible');
+    const err = new MlsApiError(
+      'API failed',
+      400,
+      'invalid_api_key',
+      'auth_error',
+      'https://docs.meili.com/errors'
+    );
+
+    it('should include status code', () => {
+      expect(err.statusCode).toBe(400);
     });
 
-    it.todo('should include error code from Meili', () => {
-      expect.fail('TODO: Test that code (e.g., "invalid_api_key") is preserved');
+    it('should include error code from Meili', () => {
+      expect(err.errorCode).toBe('invalid_api_key');
     });
 
-    it.todo('should include error type', () => {
-      expect.fail('TODO: Test that type (e.g., "auth") is preserved');
+    it('should include error type', () => {
+      expect(err.errorType).toBe('auth_error');
     });
 
-    it.todo('should include link to documentation', () => {
-      expect.fail('TODO: Test that link to Meili docs is included');
-    });
-
-    it.todo('should format message helpfully', () => {
-      expect.fail('TODO: Test that message includes actionable info');
+    it('should include link to documentation', () => {
+      expect(err.errorLink).toBe('https://docs.meili.com/errors');
     });
   });
 
   describe('MlsTaskTimeoutError', () => {
-    it.todo('should include task UID', () => {
-      expect.fail('TODO: Test that taskUid is accessible');
+    const err = new MlsTaskTimeoutError(123, 5000);
+
+    it('should include task UID', () => {
+      expect(err.taskUid).toBe(123);
     });
 
-    it.todo('should include timeout duration', () => {
-      expect.fail('TODO: Test that timeout value is in message');
+    it('should include timeout duration', () => {
+      expect(err.timeout).toBe(5000);
     });
-
-    it.todo('should include last known task status', () => {
-      expect.fail('TODO: Test that lastStatus is preserved');
+    
+    it('should generate descriptive message', () => {
+      expect(err.message).toContain('Task 123 timed out after 5000ms');
     });
   });
 
   describe('MlsRequestTimeoutError', () => {
-    it.todo('should include request URL', () => {
-      expect.fail('TODO: Test that url is accessible');
+    const err = new MlsRequestTimeoutError(1000, 'http://api.com');
+
+    it('should include request URL', () => {
+      expect(err.url).toBe('http://api.com');
     });
 
-    it.todo('should include timeout duration', () => {
-      expect.fail('TODO: Test that timeout value is in message');
+    it('should include timeout duration', () => {
+      expect(err.timeout).toBe(1000);
     });
   });
 
   describe('MlsBatchError', () => {
-    it.todo('should include batch ID', () => {
-      expect.fail('TODO: Test that batchId is accessible');
+    const failedIndices = [1, 3];
+    const successfulIndices = [0, 2];
+    const errors = [{ batchIndex: 1, error: new Error('fail') }];
+    const err = new MlsBatchError(
+      'Batch failed',
+      failedIndices,
+      successfulIndices,
+      errors
+    );
+
+    it('should include failed batches', () => {
+      expect(err.failedBatches).toEqual(failedIndices);
     });
 
-    it.todo('should include failed task UIDs', () => {
-      expect.fail('TODO: Test that failedTasks array is available');
+    it('should include successful batches', () => {
+        expect(err.successfulBatches).toEqual(successfulIndices);
     });
 
-    it.todo('should include per-task errors', () => {
-      expect.fail('TODO: Test that individual task errors are preserved');
+    it('should include per-task errors', () => {
+      expect(err.errors).toEqual(errors);
     });
   });
 
   describe('MlsTokenError', () => {
-    it.todo('should indicate token problem type', () => {
-      expect.fail('TODO: Test that error indicates expired/invalid/malformed');
+    it('should have correct name', () => {
+      const err = new MlsTokenError('Expired token');
+      expect(err.name).toBe('MlsTokenError');
     });
   });
 
   describe('error instanceof checks', () => {
-    it.todo('should allow catching specific error types', () => {
-      expect.fail('TODO: Test that instanceof works for error type checking');
+    it('should allow catching specific error types', () => {
+      const err = new MlsApiError('api');
+      expect(err).toBeInstanceOf(MlsApiError);
+      expect(err).not.toBeInstanceOf(MlsTaskTimeoutError);
     });
 
-    it.todo('should allow catching parent MlsError', () => {
-      expect.fail('TODO: Test that all errors are instanceof MlsError');
+    it('should allow catching parent MlsError', () => {
+      const err1 = new MlsApiError('api');
+      const err2 = new MlsTokenError('token');
+      
+      expect(err1).toBeInstanceOf(MlsError);
+      expect(err2).toBeInstanceOf(MlsError);
     });
   });
 });

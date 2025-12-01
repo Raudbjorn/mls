@@ -240,6 +240,7 @@ export class BatchService {
         } catch (finalError) {
           errors.push({ batchIndex: batchCount, error: finalError as Error });
         }
+        batch = []; // Prevent double submission in finally block
       }
 
       throw streamError;

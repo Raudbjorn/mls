@@ -1,69 +1,100 @@
 import { describe, it, expect } from 'vitest';
+import {
+  isMeiliTask,
+  isTaskStatus,
+  isWebhook,
+  isBatch,
+  isNetwork,
+  type MeiliTask
+} from './meilisearch';
 
-/**
- * Type Definitions Tests
- *
- * Type guard and validation functions for Meilisearch types.
- * Goal: "Domain rules are correct under a storm of random inputs."
- */
 describe('Type Guards and Validators', () => {
   describe('isMeiliTask', () => {
-    it.todo('should return true for valid MeiliTask', () => {
-      expect.fail('TODO: Property test - valid task objects pass type guard');
+    it('should return true for valid MeiliTask', () => {
+      const task: MeiliTask = {
+        taskUid: 1,
+        status: 'succeeded',
+        type: 'indexCreation',
+        enqueuedAt: '2023-01-01'
+      };
+      expect(isMeiliTask(task)).toBe(true);
     });
 
-    it.todo('should return false for invalid objects', () => {
-      expect.fail('TODO: Property test - random objects fail type guard');
+    it('should return false for invalid objects', () => {
+      expect(isMeiliTask({})).toBe(false);
+      expect(isMeiliTask(null)).toBe(false);
+      expect(isMeiliTask({ taskUid: 'string' })).toBe(false);
     });
 
-    it.todo('should validate required fields', () => {
-      expect.fail('TODO: Test that taskUid, status, type are required');
+    it('should validate required fields', () => {
+      const partial = { taskUid: 1, status: 'succeeded' };
+      expect(isMeiliTask(partial)).toBe(false); // Missing type, enqueuedAt
     });
   });
 
   describe('isTaskStatus', () => {
-    it.todo('should accept valid statuses', () => {
-      expect.fail('TODO: Test that enqueued/processing/succeeded/failed/canceled pass');
+    it('should accept valid statuses', () => {
+      expect(isTaskStatus('enqueued')).toBe(true);
+      expect(isTaskStatus('processing')).toBe(true);
+      expect(isTaskStatus('succeeded')).toBe(true);
+      expect(isTaskStatus('failed')).toBe(true);
+      expect(isTaskStatus('canceled')).toBe(true);
     });
 
-    it.todo('should reject invalid statuses', () => {
-      expect.fail('TODO: Property test - random strings fail');
-    });
-  });
-
-  describe('isTaskType', () => {
-    it.todo('should accept valid task types', () => {
-      expect.fail('TODO: Test that indexCreation/documentAddition/etc pass');
-    });
-
-    it.todo('should reject invalid types', () => {
-      expect.fail('TODO: Property test - random strings fail');
+    it('should reject invalid statuses', () => {
+      expect(isTaskStatus('pending')).toBe(false);
+      expect(isTaskStatus('completed')).toBe(false);
+      expect(isTaskStatus(123)).toBe(false);
     });
   });
 
   describe('isWebhook', () => {
-    it.todo('should validate webhook structure', () => {
-      expect.fail('TODO: Property test - valid webhooks pass');
+    it('should validate webhook structure', () => {
+      const hook = { id: '1', url: 'http://example.com' };
+      expect(isWebhook(hook)).toBe(true);
     });
 
-    it.todo('should validate URL format', () => {
-      expect.fail('TODO: Test that invalid URLs fail validation');
+    it('should require id and url', () => {
+      expect(isWebhook({ id: '1' })).toBe(false);
+      expect(isWebhook({ url: 'http://example.com' })).toBe(false);
     });
   });
 
   describe('isBatch', () => {
-    it.todo('should validate batch structure', () => {
-      expect.fail('TODO: Property test - valid batches pass');
+    it('should validate batch structure', () => {
+      const batch = {
+        uid: 1,
+        status: 'processing',
+        type: 'import',
+        duration: 100
+      };
+      expect(isBatch(batch)).toBe(true);
     });
 
-    it.todo('should validate batch stats', () => {
-      expect.fail('TODO: Test that stats fields are validated');
+    it('should reject invalid types', () => {
+        const badBatch = { uid: 'string' };
+        expect(isBatch(badBatch)).toBe(false);
     });
   });
 
   describe('isNetwork', () => {
-    it.todo('should validate network config structure', () => {
-      expect.fail('TODO: Property test - valid network configs pass');
+    it('should validate network config structure', () => {
+      const network = {
+        self: 'http://localhost:7700',
+        remotes: [
+          { url: 'http://other:7700', searchApiKey: 'key', name: 'other' }
+        ]
+      };
+      expect(isNetwork(network)).toBe(true);
+    });
+    
+    it('should fail if remotes are invalid', () => {
+        const network = {
+            self: 'http://localhost:7700',
+            remotes: [{ url: 'broken' }] // Missing keys
+        };
+        expect(isNetwork(network)).toBe(false);
     });
   });
 });
+
