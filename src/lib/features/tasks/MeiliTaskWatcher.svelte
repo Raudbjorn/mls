@@ -7,7 +7,7 @@
     let initError = $state<string | null>(null);
     
     if (!taskService) {
-        initError = 'MeiliTaskWatcher requires taskService context. Ensure the component is wrapped with a provider that sets taskService context.';
+        throw new Error('MeiliTaskWatcher requires taskService context. Ensure the component is wrapped with a provider that sets taskService context.');
     }
     
     // Derived state for active tasks
