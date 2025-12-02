@@ -160,11 +160,11 @@ describe('BatchService', () => {
         mockIndex.addDocuments.mockResolvedValue({ taskUid: 1 });
 
         const generator = service.processDocumentStream(mockIndex, errorStream(), 'add', { batchSize: 2 });
-        
+
         await expect(async () => {
             for await (const _ of generator) {}
         }).rejects.toThrow('Stream failed');
-        
+
         // Should have processed the first item in cleanup/final block because batch wasn't full but stream ended (errored)
         // Wait, if stream throws, the loop exits. The `catch` block catches "Stream iteration error".
         // Then it calls `throw streamError`.
@@ -172,6 +172,191 @@ describe('BatchService', () => {
         // catch (error) { ... if (batch.length > 0) try process ... throw streamError }
         // So it should try to add the 1 pending doc.
         expect(mockIndex.addDocuments).toHaveBeenCalledTimes(1);
+    });
+
+    it('should support update operation for streams', async () => {
+      const stream = createStream(3);
+      mockIndex.updateDocuments.mockResolvedValue({ taskUid: 1 });
+
+      const tasks = [];
+      for await (const task of service.processDocumentStream(mockIndex, stream, 'update', { batchSize: 2 })) {
+        tasks.push(task);
+      }
+
+      expect(mockIndex.updateDocuments).toHaveBeenCalledTimes(2); // 2, 1
+      expect(mockIndex.addDocuments).not.toHaveBeenCalled();
+    });
+
+    it('should wait for completion if requested', async () => {
+      const stream = createStream(2);
+      mockIndex.addDocuments.mockResolvedValue({ taskUid: 1 });
+      mockTaskService.waitForTask.mockResolvedValue({ status: 'succeeded', taskUid: 1 });
+
+      const tasks = [];
+      for await (const task of service.processDocumentStream(
+        mockIndex,
+        stream,
+        'add',
+        { batchSize: 1, waitForCompletion: true }
+      )) {
+        tasks.push(task);
+      }
+
+      expect(mockTaskService.waitForTask).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('edge cases and error handling', () => {
+    it('should handle empty document array', async () => {
+      const result = await service.addDocumentsInBatches(mockIndex, []);
+
+      expect(result.totalBatches).toBe(0);
+      expect(result.successfulBatches).toBe(0);
+      expect(mockIndex.addDocuments).not.toHaveBeenCalled();
+    });
+
+    it('should handle single document', async () => {
+      const doc = { id: 1, name: 'test' };
+      mockIndex.addDocuments.mockResolvedValue({ taskUid: 1 });
+
+      const result = await service.addDocumentsInBatches(mockIndex, [doc]);
+
+      expect(result.totalBatches).toBe(1);
+      expect(result.successfulBatches).toBe(1);
+      expect(mockIndex.addDocuments).toHaveBeenCalledWith([doc], { primaryKey: undefined });
+    });
+
+    it('should handle exactly batch size documents', async () => {
+      const docs = Array.from({ length: 1000 }, (_, i) => ({ id: i }));
+      mockIndex.addDocuments.mockResolvedValue({ taskUid: 1 });
+
+      const result = await service.addDocumentsInBatches(mockIndex, docs, { batchSize: 1000 });
+
+      expect(result.totalBatches).toBe(1);
+      expect(mockIndex.addDocuments).toHaveBeenCalledTimes(1);
+    });
+
+    it('should pass primary key to operations', async () => {
+      const docs = [{ customId: 1 }];
+      mockIndex.addDocuments.mockResolvedValue({ taskUid: 1 });
+
+      await service.addDocumentsInBatches(mockIndex, docs, { primaryKey: 'customId' });
+
+      expect(mockIndex.addDocuments).toHaveBeenCalledWith(docs, { primaryKey: 'customId' });
+    });
+
+    it('should handle wait for completion with task failure', async () => {
+      const docs = [{ id: 1 }];
+      mockIndex.addDocuments.mockResolvedValue({ taskUid: 1 });
+      mockTaskService.waitForTask.mockResolvedValue({
+        status: 'failed',
+        taskUid: 1,
+        error: { message: 'Task failed' }
+      });
+
+      await expect(service.addDocumentsInBatches(mockIndex, docs, {
+        waitForCompletion: true
+      })).rejects.toThrow(MlsBatchError);
+    });
+
+    it('should handle concurrent batch operations', async () => {
+      const docs1 = [{ id: 1 }];
+      const docs2 = [{ id: 2 }];
+      mockIndex.addDocuments.mockResolvedValue({ taskUid: 1 });
+
+      const [result1, result2] = await Promise.all([
+        service.addDocumentsInBatches(mockIndex, docs1),
+        service.addDocumentsInBatches(mockIndex, docs2)
+      ]);
+
+      expect(result1.successfulBatches).toBe(1);
+      expect(result2.successfulBatches).toBe(1);
+      expect(mockIndex.addDocuments).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('progress tracking', () => {
+    it('should call onBatchComplete with correct batch index', async () => {
+      const docs = Array.from({ length: 25 }, (_, i) => ({ id: i }));
+      const onComplete = vi.fn();
+      mockIndex.addDocuments.mockResolvedValue({ taskUid: 1 });
+
+      await service.addDocumentsInBatches(mockIndex, docs, {
+        batchSize: 10,
+        onBatchComplete: onComplete
+      });
+
+      expect(onComplete).toHaveBeenCalledTimes(3);
+      expect(onComplete).toHaveBeenNthCalledWith(1, 0, expect.objectContaining({ taskUid: 1 }));
+      expect(onComplete).toHaveBeenNthCalledWith(2, 1, expect.objectContaining({ taskUid: 1 }));
+      expect(onComplete).toHaveBeenNthCalledWith(3, 2, expect.objectContaining({ taskUid: 1 }));
+    });
+
+    it('should call onBatchError for failed batches', async () => {
+      const docs = [{ id: 1 }, { id: 2 }];
+      const onError = vi.fn();
+
+      mockIndex.addDocuments
+        .mockResolvedValueOnce({ taskUid: 1 })
+        .mockRejectedValueOnce(new Error('Batch failed'));
+
+      try {
+        await service.addDocumentsInBatches(mockIndex, docs, {
+          batchSize: 1,
+          onBatchError: onError
+        });
+      } catch (error) {
+        // Expected error
+      }
+
+      expect(onError).toHaveBeenCalledTimes(1);
+      expect(onError).toHaveBeenCalledWith(1, expect.objectContaining({ message: 'Batch failed' }));
+    });
+  });
+
+  describe('large dataset handling', () => {
+    it('should handle 10k+ documents efficiently', async () => {
+      const docs = Array.from({ length: 10000 }, (_, i) => ({ id: i }));
+      mockIndex.addDocuments.mockResolvedValue({ taskUid: 1 });
+
+      const result = await service.addDocumentsInBatches(mockIndex, docs, { batchSize: 1000 });
+
+      expect(result.totalBatches).toBe(10);
+      expect(result.successfulBatches).toBe(10);
+      expect(mockIndex.addDocuments).toHaveBeenCalledTimes(10);
+    });
+
+    it('should not exceed memory limits for large documents', () => {
+      const largeDocs = Array(100).fill({
+        content: 'x'.repeat(1024 * 1024) // 1MB per doc
+      });
+
+      const batchSize = service.calculateOptimalBatchSize(largeDocs, 10);
+
+      // Should calculate a reasonable batch size for 1MB docs with 10MB limit
+      expect(batchSize).toBeLessThanOrEqual(10);
+      expect(batchSize).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('partial success tracking', () => {
+    it('should track both successful and failed batches', async () => {
+      const docs = Array.from({ length: 3 }, (_, i) => ({ id: i }));
+
+      mockIndex.addDocuments
+        .mockResolvedValueOnce({ taskUid: 1 })
+        .mockRejectedValueOnce(new Error('Batch 2 failed'))
+        .mockResolvedValueOnce({ taskUid: 3 });
+
+      try {
+        await service.addDocumentsInBatches(mockIndex, docs, { batchSize: 1 });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(MlsBatchError);
+        expect(error.successfulBatches).toEqual([0, 2]);
+        expect(error.failedBatches).toEqual([1]);
+        expect(error.batchResult.successfulBatches).toBe(2);
+        expect(error.batchResult.failedBatches).toBe(1);
+      }
     });
   });
 });
