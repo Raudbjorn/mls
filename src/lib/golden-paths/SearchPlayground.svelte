@@ -85,23 +85,23 @@
   }
 
   // Escapes HTML special characters to prevent XSS
-  function escapeHtml(str: string): string {
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
+  // function escapeHtml(str: string): string {
+  //   return str
+  //     .replace(/&/g, '&amp;')
+  //     .replace(/</g, '&lt;')
+  //     .replace(/>/g, '&gt;')
+  //     .replace(/"/g, '&quot;')
+  //     .replace(/'/g, '&#39;');
+  // }
 
   function parseHighlights(value: string | undefined) {
-    if (typeof value !== 'string') return [{ text: escapeHtml(String(value)), highlight: false }];
+    if (typeof value !== 'string') return [{ text: String(value), highlight: false }];
     const parts = value.split(/<\/?em>/);
     const result: {text: string, highlight: boolean}[] = [];
     let isHighlighted = value.startsWith('<em>');
     for (const part of parts) {
       if (part) {
-        result.push({ text: escapeHtml(part), highlight: isHighlighted });
+        result.push({ text: part, highlight: isHighlighted });
       }
       isHighlighted = !isHighlighted;
     }
