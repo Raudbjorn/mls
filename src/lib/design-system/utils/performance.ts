@@ -328,35 +328,43 @@ export function prefetch(urls: string[]) {
 /**
  * Memoization decorator
  */
+// Helper type: recursively build nested cache structure for argument types
+type MemoizeCache<Args extends any[], R> =
+  Args extends [infer First, ...infer Rest]
+    ? First extends object
+      ? WeakMap<First, MemoizeCache<Rest, R>>
+      : Map<First, MemoizeCache<Rest, R>>
+    : Map<symbol, R>;
+
 export function memoize<T extends (...args: any[]) => any>(fn: T): T {
   // Use nested Map/WeakMap for argument-based caching
-  const cacheRoot = new Map<any, any>();
+  const cacheRoot: MemoizeCache<Parameters<T>, ReturnType<T>> = new Map();
   const RESULT_KEY = Symbol('memoizeResult');
 
   return function (this: any, ...args: Parameters<T>) {
-    let cache = cacheRoot;
+    let cache: MemoizeCache<any, ReturnType<T>> = cacheRoot;
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       const isObject = arg !== null && (typeof arg === 'object' || typeof arg === 'function');
       let nextCache;
       if (isObject) {
-        if (!cache.has(arg)) {
-          cache.set(arg, new WeakMap());
+        if (!(cache as WeakMap<any, any>).has(arg)) {
+          (cache as WeakMap<any, any>).set(arg, new WeakMap());
         }
-        nextCache = cache.get(arg);
+        nextCache = (cache as WeakMap<any, any>).get(arg);
       } else {
-        if (!cache.has(arg)) {
-          cache.set(arg, new Map());
+        if (!(cache as Map<any, any>).has(arg)) {
+          (cache as Map<any, any>).set(arg, new Map());
         }
-        nextCache = cache.get(arg);
+        nextCache = (cache as Map<any, any>).get(arg);
       }
       cache = nextCache;
     }
-    if (cache.has(RESULT_KEY)) {
-      return cache.get(RESULT_KEY);
+    if ((cache as Map<symbol, ReturnType<T>>).has(RESULT_KEY)) {
+      return (cache as Map<symbol, ReturnType<T>>).get(RESULT_KEY);
     }
     const result = fn.apply(this, args);
-    cache.set(RESULT_KEY, result);
+    (cache as Map<symbol, ReturnType<T>>).set(RESULT_KEY, result);
     return result;
   } as T;
 }
