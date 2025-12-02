@@ -16,7 +16,7 @@
   import AdminShell from '../design-system/templates/AdminShell.svelte';
   import TaskMonitor from '../features/tasks/TaskMonitor.svelte';
   import IndexList from '../features/indexes/IndexList.svelte';
-  import KeyManager from '../features/keys/KeyManager.svelte';
+  import KeyManager from '../features/security/KeyManager.svelte';
   import BackupManager from '../features/backup/BackupManager.svelte';
   import HealthDashboard from '../features/health/HealthDashboard.svelte';
 
