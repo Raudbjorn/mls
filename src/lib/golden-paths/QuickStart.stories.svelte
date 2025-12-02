@@ -1,19 +1,19 @@
 <script module lang="ts">
   import type { Meta } from '@storybook/svelte';
   import QuickStart from './QuickStart.svelte';
-  import { vi } from 'vitest';
+  // import { vi } from 'vitest'; // Removed: do not use vitest in Storybook stories
 
   // Mock MeiliSearch client for Storybook
   const mockClient = {
-    getIndexes: vi.fn().mockResolvedValue({
+    getIndexes: async () => ({
       results: [
         { uid: 'movies', numberOfDocuments: 1000 },
         { uid: 'products', numberOfDocuments: 500 }
       ]
     }),
-    getKeys: vi.fn().mockResolvedValue([]),
-    index: vi.fn().mockReturnValue({
-      search: vi.fn().mockResolvedValue({
+    getKeys: async () => [],
+    index: () => ({
+      search: async () => ({
         hits: [
           { id: 1, title: 'Example Result 1' },
           { id: 2, title: 'Example Result 2' }
