@@ -7,7 +7,7 @@
   export let onSearch: ((value: string) => void) | undefined = undefined;
   export let debounce: number = 300;
 
-  let timer: number;
+  let timer: number = 0;
 
   function handleInput() {
     clearTimeout(timer);

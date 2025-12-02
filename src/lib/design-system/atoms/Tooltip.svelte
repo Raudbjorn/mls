@@ -7,7 +7,7 @@
   export let delay: number = 0;
 
   let showTooltip = false;
-  let tooltipTimeout: number;
+  let tooltipTimeout: number = 0;
 
   // Generate unique ID for ARIA attributes
   const tooltipId = generateUniqueId('tooltip');
