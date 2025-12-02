@@ -1,8 +1,6 @@
 <script module lang="ts">
   import type { Meta } from '@storybook/svelte';
   import QuickStart from './QuickStart.svelte';
-  // import { vi } from 'vitest'; // Removed: do not use vitest in Storybook stories
-
   // Mock MeiliSearch client for Storybook
   const mockClient = {
     getIndexes: async () => ({
