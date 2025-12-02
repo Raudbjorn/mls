@@ -11,6 +11,7 @@
     let query = $state('');
     let semanticRatio = $state(0.5);
     let rankingScoreThreshold = $state<number | null>(null);
+    let rankingScoreThresholdInput = $state<string>('');
     let embedder = $state(DEFAULT_EMBEDDER);
     let filter = $state('');
     let facetsInput = $state('');
@@ -112,12 +113,16 @@
                 <label>Ranking Score Threshold</label>
                 <input
                     type="number"
-                    bind:value={rankingScoreThreshold}
+                    bind:value={rankingScoreThresholdInput}
                     min="0"
                     max="1"
                     step="0.1"
                     placeholder="Optional (0.0 - 1.0)"
-                    
+                    oninput={() => {
+                        // Convert string to number or null
+                        const val = rankingScoreThresholdInput.trim();
+                        rankingScoreThreshold = val === '' ? null : parseFloat(val);
+                    }}
                 />
             </div>
 

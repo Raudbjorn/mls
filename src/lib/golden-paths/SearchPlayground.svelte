@@ -79,7 +79,12 @@
   function handleSearchInput(value: string) {
     query = value;
     if (searchOnType) {
-      if (timer) clearTimeout(timer);
+      // Clear any existing timer before setting a new one
+      // This ensures only the most recent input triggers a search
+      if (timer !== null) {
+        clearTimeout(timer);
+        timer = null;
+      }
       timer = setTimeout(performSearch, debounceMs);
     }
   }
