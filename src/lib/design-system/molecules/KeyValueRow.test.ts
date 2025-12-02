@@ -8,48 +8,28 @@ import { describe, it, expect } from 'vitest';
  */
 describe('KeyValueRow', () => {
   describe('rendering', () => {
-    it.todo('should render key label', () => {
-      expect.fail('TODO: Test that key prop renders as label text');
-    });
+    it.todo('should render key label');
 
-    it.todo('should render value content', () => {
-      expect.fail('TODO: Test that value prop or slot renders value content');
-    });
+    it.todo('should render value content');
 
-    it.todo('should render copyable value with copy button', () => {
-      expect.fail('TODO: Test that copyable=true shows copy button next to value');
-    });
+    it.todo('should render copyable value with copy button');
 
-    it.todo('should truncate long values with ellipsis', () => {
-      expect.fail('TODO: Test that truncate prop limits value display with overflow');
-    });
+    it.todo('should truncate long values with ellipsis');
 
-    it.todo('should render monospace value when code=true', () => {
-      expect.fail('TODO: Test that code prop applies monospace font to value');
-    });
+    it.todo('should render monospace value when code=true');
   });
 
   describe('behavior', () => {
-    it.todo('should copy value to clipboard on copy button click', () => {
-      expect.fail('TODO: Test that clicking copy button writes value to clipboard');
-    });
+    it.todo('should copy value to clipboard on copy button click');
 
-    it.todo('should show copy confirmation feedback', () => {
-      expect.fail('TODO: Test that copy button shows "Copied!" feedback after click');
-    });
+    it.todo('should show copy confirmation feedback');
 
-    it.todo('should emit copy event', () => {
-      expect.fail('TODO: Test that on:copy event fires when value is copied');
-    });
+    it.todo('should emit copy event');
   });
 
   describe('accessibility', () => {
-    it.todo('should use definition list semantics when appropriate', () => {
-      expect.fail('TODO: Test that key uses dt and value uses dd elements');
-    });
+    it.todo('should use definition list semantics when appropriate');
 
-    it.todo('should have accessible copy button', () => {
-      expect.fail('TODO: Test that copy button has aria-label="Copy value"');
-    });
+    it.todo('should have accessible copy button');
   });
 });

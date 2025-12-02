@@ -8,43 +8,25 @@ import { describe, it, expect, vi } from 'vitest';
  */
 describe('ApiKeyTable', () => {
   describe('rendering keys', () => {
-    it.todo('should render table with API key rows', () => {
-      expect.fail('TODO: Test that each API key renders as table row');
-    });
+    it.todo('should render table with API key rows');
 
-    it.todo('should display key name/description', () => {
-      expect.fail('TODO: Test that name column shows key description');
-    });
+    it.todo('should display key name/description');
 
-    it.todo('should display masked key value', () => {
-      expect.fail('TODO: Test that key value is masked (e.g., "sk-****1234")');
-    });
+    it.todo('should display masked key value');
 
-    it.todo('should display key actions/permissions', () => {
-      expect.fail('TODO: Test that actions array is displayed');
-    });
+    it.todo('should display key actions/permissions');
 
-    it.todo('should display key indexes', () => {
-      expect.fail('TODO: Test that indexes array or "*" is shown');
-    });
+    it.todo('should display key indexes');
 
-    it.todo('should display expiration date', () => {
-      expect.fail('TODO: Test that expiresAt is formatted and shown');
-    });
+    it.todo('should display expiration date');
 
-    it.todo('should display creation date', () => {
-      expect.fail('TODO: Test that createdAt is formatted and shown');
-    });
+    it.todo('should display creation date');
   });
 
   describe('key visibility', () => {
-    it.todo('should toggle key visibility on click', () => {
-      expect.fail('TODO: Test that eye icon toggles masked/revealed key');
-    });
+    it.todo('should toggle key visibility on click');
 
-    it.todo('should auto-hide key after timeout', () => {
-      expect.fail('TODO: Test that revealed key re-masks after delay');
-    });
+    it.todo('should auto-hide key after timeout');
 
     it('should copy key to clipboard', async () => {
       // Test that copy action copies full key value
@@ -59,7 +41,6 @@ describe('ApiKeyTable', () => {
       // Component setup and copy button click would go here
       // For now, this is a placeholder showing the test intent
       expect(mockWriteText).toBeCalledWith(keyValue);
-    });
 
     it('should show copy confirmation feedback', async () => {
       // Test that successful copy shows confirmation (e.g., checkmark, toast)
@@ -68,40 +49,25 @@ describe('ApiKeyTable', () => {
       const confirmationElement = document.querySelector('[data-testid="copy-confirmation"]');
       expect(confirmationElement).toBeTruthy();
       // Could also test that the confirmation disappears after a timeout
-    });
   });
 
   describe('CRUD operations', () => {
-    it.todo('should emit create event', () => {
-      expect.fail('TODO: Test that create button emits on:create');
-    });
+    it.todo('should emit create event');
 
-    it.todo('should emit edit event', () => {
-      expect.fail('TODO: Test that edit action emits on:edit with key');
-    });
+    it.todo('should emit edit event');
 
-    it.todo('should emit delete event with confirmation', () => {
-      expect.fail('TODO: Test that delete shows ConfirmDialog then emits on:delete');
-    });
+    it.todo('should emit delete event with confirmation');
 
-    it.todo('should emit regenerate event', () => {
-      expect.fail('TODO: Test that regenerate action emits on:regenerate');
-    });
+    it.todo('should emit regenerate event');
   });
 
   describe('empty and loading states', () => {
-    it.todo('should show loading state', () => {
-      expect.fail('TODO: Test that loading=true shows appropriate indicator');
-    });
+    it.todo('should show loading state');
 
-    it.todo('should show empty state', () => {
-      expect.fail('TODO: Test that no keys shows "Create API key" prompt');
-    });
+    it.todo('should show empty state');
   });
 
   describe('accessibility', () => {
-    it.todo('should not expose key values to screen readers when masked', () => {
-      expect.fail('TODO: Test that masked keys have aria-hidden or safe text');
-    });
+    it.todo('should not expose key values to screen readers when masked');
   });
 });
