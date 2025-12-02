@@ -1,8 +1,6 @@
 <script module lang="ts">
   import type { Meta } from '@storybook/svelte';
   import QuickStart from './QuickStart.svelte';
-  // Mock MeiliSearch client for Storybook
-  const mockClient = {
     getIndexes: async () => ({
       results: [
         { uid: 'movies', numberOfDocuments: 1000 },
