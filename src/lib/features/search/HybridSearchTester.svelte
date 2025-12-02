@@ -117,6 +117,10 @@
                     max="1"
                     step="0.1"
                     placeholder="Optional (0.0 - 1.0)"
+                    oninput={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        rankingScoreThreshold = target.value === '' ? null : parseFloat(target.value);
+                    }}
                 />
             </div>
 
