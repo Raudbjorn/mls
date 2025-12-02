@@ -3,16 +3,6 @@ import { EnhancedTaskService } from './EnhancedTaskService';
 import { MlsTaskTimeoutError } from '../errors';
 import type { MeiliSearch, Task } from 'meilisearch';
 
-// Mock MlsTaskTimeoutError since we might not have the full implementation yet
-vi.mock('../errors', () => ({
-  MlsTaskTimeoutError: class extends Error {
-    constructor(public taskUid: number, public timeoutMs: number) {
-      super(`Task ${taskUid} timed out after ${timeoutMs}ms`);
-      this.name = 'MlsTaskTimeoutError';
-    }
-  }
-}));
-
 describe('EnhancedTaskService', () => {
   let service: EnhancedTaskService;
   let mockClient: any;
