@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
 
   export let value: string = '';
@@ -14,6 +15,13 @@
       onSearch?.(value);
     }, debounce);
   }
+
+  // Cleanup timer on component destroy
+  onDestroy(() => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  });
 </script>
 
 <div class="search-input">

@@ -84,11 +84,18 @@
     }
   }
 
-  function renderHighlightedField(value: any): string {
-    if (typeof value === 'string') {
-      return value.replace(/<em>/g, '<mark>').replace(/<\/em>/g, '</mark>');
+  function parseHighlights(value: string | undefined) {
+    if (typeof value !== 'string') return [{ text: String(value), highlight: false }];
+    const parts = value.split(/<\/?em>/);
+    const result: {text: string, highlight: boolean}[] = [];
+    let isHighlighted = value.startsWith('<em>');
+    for (const part of parts) {
+      if (part) {
+        result.push({ text: part, highlight: isHighlighted });
+      }
+      isHighlighted = !isHighlighted;
     }
-    return String(value);
+    return result;
   }
 
   $effect(() => {
@@ -160,7 +167,9 @@
                     <span class="field-key">{key}:</span>
                     {#if hit._formatted?.[key]}
                       <span class="field-value highlighted">
-                        {@html renderHighlightedField(hit._formatted[key])}
+                        {#each parseHighlights(hit._formatted[key]) as part}
+                          {#if part.highlight}<mark>{part.text}</mark>{:else}{part.text}{/if}
+                        {/each}
                       </span>
                     {:else}
                       <span class="field-value">

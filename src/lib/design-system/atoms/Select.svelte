@@ -7,6 +7,9 @@
   export let required: boolean = false;
   export let name: string | undefined = undefined;
   export let id: string | undefined = undefined;
+
+  // Generate a unique ID if none provided
+  const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
 </script>
 
 <div class="select-wrapper" class:select-wrapper--error={error}>
@@ -15,11 +18,11 @@
     {disabled}
     {required}
     {name}
-    {id}
+    id={selectId}
     class="select"
     class:select--error={error}
     aria-invalid={!!error}
-    aria-describedby={error ? `${id}-error` : undefined}
+    aria-describedby={error ? `${selectId}-error` : undefined}
   >
     <option value="" disabled selected hidden>{placeholder}</option>
     {#each options as option}
@@ -30,7 +33,7 @@
   </select>
 
   {#if error}
-    <span class="select__error" id="{id}-error" role="alert">
+    <span class="select__error" id="{selectId}-error" role="alert">
       {error}
     </span>
   {/if}

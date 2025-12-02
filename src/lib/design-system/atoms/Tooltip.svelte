@@ -1,10 +1,15 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
+
   export let content: string;
   export let position: 'top' | 'bottom' | 'left' | 'right' = 'top';
   export let delay: number = 0;
 
   let showTooltip = false;
   let tooltipTimeout: number;
+
+  // Generate unique ID for ARIA attributes
+  const tooltipId = `tooltip-${Math.random().toString(36).substr(2, 9)}`;
 
   function handleMouseEnter() {
     if (delay > 0) {
@@ -22,6 +27,13 @@
     }
     showTooltip = false;
   }
+
+  // Cleanup timer on component destroy
+  onDestroy(() => {
+    if (tooltipTimeout) {
+      clearTimeout(tooltipTimeout);
+    }
+  });
 </script>
 
 <div
@@ -30,12 +42,17 @@
   on:mouseleave={handleMouseLeave}
   on:focus={handleMouseEnter}
   on:blur={handleMouseLeave}
-  role="tooltip"
+  aria-describedby={showTooltip ? tooltipId : undefined}
 >
   <slot />
 
   {#if showTooltip}
-    <div class="tooltip tooltip--{position}" role="tooltip" aria-hidden="false">
+    <div
+      id={tooltipId}
+      class="tooltip tooltip--{position}"
+      role="tooltip"
+      aria-hidden="false"
+    >
       {content}
     </div>
   {/if}
@@ -130,6 +147,13 @@
     }
     to {
       opacity: 1;
+    }
+  }
+
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .tooltip {
+      animation: none;
     }
   }
 </style>

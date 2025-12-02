@@ -83,4 +83,16 @@
     white-space: nowrap;
     border: 0;
   }
+
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .spinner {
+      animation: none;
+    }
+
+    .spinner svg circle {
+      animation: none;
+      opacity: 0.8;
+    }
+  }
 </style>
