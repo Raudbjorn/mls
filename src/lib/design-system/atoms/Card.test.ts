@@ -8,48 +8,28 @@ import { describe, it, expect } from 'vitest';
  */
 describe('Card', () => {
   describe('rendering', () => {
-    it.todo('should render default card container', () => {
-      expect.fail('TODO: Test that Card renders with default border and background');
-    });
+    it.todo('should render default card container');
 
-    it.todo('should render children in default slot', () => {
-      expect.fail('TODO: Test that slotted content appears inside Card');
-    });
+    it.todo('should render children in default slot');
 
-    it.todo('should render with different elevation levels', () => {
-      expect.fail('TODO: Test that elevation prop applies box-shadow variations');
-    });
+    it.todo('should render with different elevation levels');
 
-    it.todo('should render with different padding sizes', () => {
-      expect.fail('TODO: Test that padding prop affects internal spacing');
-    });
+    it.todo('should render with different padding sizes');
 
-    it.todo('should render elevated variant without a border', () => {
-      expect.fail('TODO: Test that variant="elevated" correctly removes the border');
-    });
+    it.todo('should render elevated variant without a border');
   });
 
   describe('behavior', () => {
-    it.todo('should handle click when interactive', () => {
-      expect.fail('TODO: Test that clickable Card emits click event');
-    });
+    it.todo('should handle click when interactive');
 
-    it.todo('should show hover state when interactive', () => {
-      expect.fail('TODO: Test that interactive Card has hover styling');
-    });
+    it.todo('should show hover state when interactive');
   });
 
   describe('accessibility', () => {
-    it.todo('should use appropriate semantic element', () => {
-      expect.fail('TODO: Test that Card uses article/section/div appropriately');
-    });
+    it.todo('should use appropriate semantic element');
 
-    it.todo('should have role="button" when clickable', () => {
-      expect.fail('TODO: Test that interactive Card has button role');
-    });
+    it.todo('should have role="button" when clickable');
 
-    it.todo('should be focusable when interactive', () => {
-      expect.fail('TODO: Test that clickable Card can receive focus');
-    });
+    it.todo('should be focusable when interactive');
   });
 });

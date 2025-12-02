@@ -8,42 +8,26 @@ import { describe, it, expect } from 'vitest';
  */
 describe('SearchPlaygroundTemplate', () => {
   describe('layout structure', () => {
-    it.todo('should render search input area', () => {
-      expect.fail('TODO: Test that search input slot area is rendered');
-    });
+    it.todo('should render search input area');
 
-    it.todo('should render results area', () => {
-      expect.fail('TODO: Test that search results slot area is rendered');
-    });
+    it.todo('should render results area');
 
-    it.todo('should render filters area', () => {
-      expect.fail('TODO: Test that filter controls slot area exists');
-    });
+    it.todo('should render filters area');
 
-    it.todo('should render config panel area', () => {
-      expect.fail('TODO: Test that search config/options area exists');
-    });
+    it.todo('should render config panel area');
   });
 
   describe('panel layout', () => {
-    it.todo('should support side-by-side config and results', () => {
-      expect.fail('TODO: Test that config panel can sit beside results');
-    });
+    it.todo('should support side-by-side config and results');
 
-    it.todo('should support collapsible config panel', () => {
-      expect.fail('TODO: Test that config panel can be collapsed/expanded');
-    });
+    it.todo('should support collapsible config panel');
   });
 
   describe('responsive behavior', () => {
-    it.todo('should stack panels on mobile', () => {
-      expect.fail('TODO: Test that panels stack vertically on small screens');
-    });
+    it.todo('should stack panels on mobile');
   });
 
   describe('composition', () => {
-    it.todo('should integrate with HybridSearchTester', () => {
-      expect.fail('TODO: Test that HybridSearchTester organism fits in template');
-    });
+    it.todo('should integrate with HybridSearchTester');
   });
 });

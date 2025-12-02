@@ -8,44 +8,26 @@ import { describe, it, expect } from 'vitest';
  */
 describe('SectionHeader', () => {
   describe('rendering', () => {
-    it.todo('should render heading text', () => {
-      expect.fail('TODO: Test that SectionHeader displays provided title text');
-    });
+    it.todo('should render heading text');
 
-    it.todo('should render correct heading level (h1-h6)', () => {
-      expect.fail('TODO: Test that level prop renders correct HTML heading element');
-    });
+    it.todo('should render correct heading level (h1-h6)');
 
-    it.todo('should render subtitle when provided', () => {
-      expect.fail('TODO: Test that subtitle prop renders secondary text');
-    });
+    it.todo('should render subtitle when provided');
 
-    it.todo('should render action slot for buttons/links', () => {
-      expect.fail('TODO: Test that action slot content renders on the right');
-    });
+    it.todo('should render action slot for buttons/links');
 
-    it.todo('should render with divider below', () => {
-      expect.fail('TODO: Test that divider prop adds bottom border');
-    });
+    it.todo('should render with divider below');
   });
 
   describe('styling', () => {
-    it.todo('should apply size variants', () => {
-      expect.fail('TODO: Test that size prop affects font size and spacing');
-    });
+    it.todo('should apply size variants');
 
-    it.todo('should apply color variants', () => {
-      expect.fail('TODO: Test that color/muted prop affects text color');
-    });
+    it.todo('should apply color variants');
   });
 
   describe('accessibility', () => {
-    it.todo('should maintain heading hierarchy', () => {
-      expect.fail('TODO: Test that heading level creates proper document outline');
-    });
+    it.todo('should maintain heading hierarchy');
 
-    it.todo('should have proper heading semantics', () => {
-      expect.fail('TODO: Test that component renders actual heading element, not styled div');
-    });
+    it.todo('should have proper heading semantics');
   });
 });
