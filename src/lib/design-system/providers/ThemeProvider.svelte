@@ -46,7 +46,11 @@
       try {
         localStorage.setItem('mls-theme', newTheme);
       } catch (e) {
-        console.warn('Unable to save theme preference:', e);
+        console.warn(
+          `Failed to save theme preference to localStorage (key: 'mls-theme', value: '${newTheme}'). ` +
+          `This may be due to browser settings, private browsing mode, or storage restrictions. ` +
+          `Theme preference will not persist across sessions. Error:`, e
+        );
       }
     }
   };
