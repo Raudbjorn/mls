@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { generateUniqueId } from '../utils/accessibility';
+
   export let value: string = '';
   export let type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' = 'text';
   export let placeholder: string = '';
@@ -14,7 +16,7 @@
   export let minLength: number | undefined = undefined;
 
   // Generate a unique ID if none provided
-  const inputId = id || `text-field-${Math.random().toString(36).substr(2, 9)}`;
+  const inputId = id || generateUniqueId('textfield');
 
   let inputElement: HTMLInputElement;
 

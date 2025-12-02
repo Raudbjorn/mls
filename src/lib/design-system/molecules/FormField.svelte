@@ -7,7 +7,7 @@
 </script>
 
 <div class="form-field">
-    <label class="form-label" for={id}>
+    <label class="form-label" for={id || undefined}>
         {label}
         {#if required}
             <span class="required">*</span>

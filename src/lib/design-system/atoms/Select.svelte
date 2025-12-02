@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { generateUniqueId } from '../utils/accessibility';
+
   export let value: string | number = '';
   export let options: Array<{value: string | number, label: string}> = [];
   export let placeholder: string = 'Select an option';
@@ -9,7 +11,7 @@
   export let id: string | undefined = undefined;
 
   // Generate a unique ID if none provided
-  const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+  const selectId = id || generateUniqueId('select');
 </script>
 
 <div class="select-wrapper" class:select-wrapper--error={error}>

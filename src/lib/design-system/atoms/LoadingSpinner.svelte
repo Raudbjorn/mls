@@ -4,8 +4,8 @@
     export let centered = false;
 </script>
 
-<div class="spinner-container" class:centered>
-    <div class="spinner spinner-{size}" style="--spinner-color: {color}">
+<div class="spinner-container" class:centered role="status" aria-label="Loading...">
+    <div class="spinner spinner-{size}" style="--spinner-color: {color}" aria-hidden="true">
         <div></div>
         <div></div>
         <div></div>
@@ -76,6 +76,12 @@
         }
         100% {
             transform: rotate(360deg);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .spinner div {
+            animation: none;
         }
     }
 </style>

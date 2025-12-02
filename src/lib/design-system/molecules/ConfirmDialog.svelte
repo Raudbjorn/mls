@@ -43,7 +43,8 @@
 </script>
 
 {#if isOpen}
-  <div class="dialog-backdrop" on:click={handleBackdropClick} on:keydown={handleEscape}>
+  <svelte:window on:keydown={handleEscape} />
+  <div class="dialog-backdrop" on:click={handleBackdropClick}>
     <div class="dialog" on:click|stopPropagation role="dialog" aria-modal="true" aria-labelledby="dialog-title">
       <h2 id="dialog-title" class="dialog__title">{title}</h2>
 

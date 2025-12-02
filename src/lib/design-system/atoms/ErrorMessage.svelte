@@ -5,6 +5,11 @@
 
     let visible = true;
 
+    // Reset visible state when message changes
+    $: if (message) {
+        visible = true;
+    }
+
     function dismiss() {
         visible = false;
     }

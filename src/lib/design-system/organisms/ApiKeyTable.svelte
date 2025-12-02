@@ -33,7 +33,7 @@
           <td>
             <Badge variant="info">{key.actions.length} permissions</Badge>
           </td>
-          <td>{key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : 'Never'}</td>
+          <td>{key.expiresAt && !isNaN(new Date(key.expiresAt).getTime()) ? new Date(key.expiresAt).toLocaleDateString() : 'Never'}</td>
           <td class="actions">
             <Button size="small" variant="secondary" onClick={() => onEdit?.(key.uid)}>Edit</Button>
             <Button size="small" variant="danger" onClick={() => onDelete?.(key.uid)}>Delete</Button>

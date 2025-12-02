@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
+  import { generateUniqueId } from '../utils/accessibility';
 
   export let content: string;
   export let position: 'top' | 'bottom' | 'left' | 'right' = 'top';
@@ -9,7 +10,7 @@
   let tooltipTimeout: number;
 
   // Generate unique ID for ARIA attributes
-  const tooltipId = `tooltip-${Math.random().toString(36).substr(2, 9)}`;
+  const tooltipId = generateUniqueId('tooltip');
 
   function handleMouseEnter() {
     if (delay > 0) {

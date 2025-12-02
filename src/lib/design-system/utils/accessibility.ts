@@ -222,9 +222,10 @@ export function generateUniqueId(prefix = 'mls'): string {
     // Take first 8 characters of UUID for shorter IDs
     return `${prefix}-${uuid.substring(0, 8)}`;
   } else {
-    // Fallback to counter-based approach
+    // Fallback to counter-based approach with added randomness for better uniqueness
     __uniqueIdCounter += 1;
-    return `${prefix}-${Date.now()}-${__uniqueIdCounter}`;
+    const randomPart = Math.floor(Math.random() * 1e8).toString(16);
+    return `${prefix}-${Date.now()}-${__uniqueIdCounter}-${randomPart}`;
   }
 }
 
