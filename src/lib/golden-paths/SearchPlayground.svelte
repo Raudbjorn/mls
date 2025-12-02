@@ -52,7 +52,7 @@
   let totalHits = $state(0);
   let isSearching = $state(false);
   let showAdvancedPanel = $state(false);
-  let timer: number | null = null;
+  let timer: ReturnType<typeof setTimeout> | null = null;
 
   async function performSearch() {
     if (!query.trim() && !showAdvancedPanel) return;
