@@ -11,12 +11,9 @@
   export let readonly: boolean = false;
   export let required: boolean = false;
   export let name: string | undefined = undefined;
-  export let id: string | undefined = undefined;
+  export let id: string = generateUniqueId('textfield');
   export let maxLength: number | undefined = undefined;
   export let minLength: number | undefined = undefined;
-
-  // Generate a unique ID if none provided
-  const inputId = id || generateUniqueId('textfield');
 
   let inputElement: HTMLInputElement;
 
@@ -31,7 +28,7 @@
 
 <div class="text-field">
   {#if label}
-    <label for={inputId} class="text-field__label">
+    <label for={id} class="text-field__label">
       {label}
       {#if required}
         <span class="text-field__required">*</span>
@@ -48,23 +45,23 @@
     {readonly}
     {required}
     {name}
-    id={inputId}
-    {maxLength}
-    {minLength}
+    id={id}
+    maxlength={maxLength}
+    minlength={minLength}
     class="text-field__input"
     class:text-field__input--error={error}
     aria-invalid={!!error}
-    aria-describedby="{error ? `${inputId}-error` : ''} {hint ? `${inputId}-hint` : ''}".trim()
+    aria-describedby={(`${error ? `${id}-error` : ''} ${hint ? `${id}-hint` : ''}`).trim() || undefined}
   />
 
   {#if error}
-    <span class="text-field__error" id="{inputId}-error" role="alert">
+    <span class="text-field__error" id="{id}-error" role="alert">
       {error}
     </span>
   {/if}
 
   {#if hint && !error}
-    <span class="text-field__hint" id="{inputId}-hint">
+    <span class="text-field__hint" id="{id}-hint">
       {hint}
     </span>
   {/if}

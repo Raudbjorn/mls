@@ -86,12 +86,12 @@
 
   /* Respect user's motion preferences */
   @media (prefers-reduced-motion: reduce) {
-    .spinner {
+    .spinner,
+    .spinner svg circle {
       animation: none;
     }
 
     .spinner svg circle {
-      animation: none;
       opacity: 0.8;
     }
   }
