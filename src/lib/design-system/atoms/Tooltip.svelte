@@ -31,14 +31,13 @@
 
   // Cleanup timer on component destroy
   onDestroy(() => {
-    if (tooltipTimeout) {
-      clearTimeout(tooltipTimeout);
-    }
+    clearTimeout(tooltipTimeout);
   });
 </script>
 
 <div
   class="tooltip-wrapper"
+  role="group"
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
   on:focus={handleMouseEnter}

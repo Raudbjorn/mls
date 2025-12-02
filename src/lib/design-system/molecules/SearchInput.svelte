@@ -18,9 +18,7 @@
 
   // Cleanup timer on component destroy
   onDestroy(() => {
-    if (timer) {
-      clearTimeout(timer);
-    }
+    clearTimeout(timer);
   });
 </script>
 
