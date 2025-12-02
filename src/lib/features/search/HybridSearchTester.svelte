@@ -6,10 +6,12 @@
 
     let { indexUid } = $props();
 
+    const DEFAULT_EMBEDDER = 'default';
+
     let query = $state('');
     let semanticRatio = $state(0.5);
     let rankingScoreThreshold = $state<number | null>(null);
-    let embedder = $state('default');
+    let embedder = $state(DEFAULT_EMBEDDER);
     let filter = $state('');
     let facetsInput = $state('');
 

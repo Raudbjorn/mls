@@ -40,7 +40,8 @@
                 startPolling();
             }
         } catch (e: unknown) {
-            error = e instanceof Error ? e.message : String(e);
+            const { getErrorMessage } = await import('$lib/design-system/utils/errors');
+            error = getErrorMessage(e);
         } finally {
             loading = false;
         }
@@ -54,7 +55,8 @@
             metricsEnabled = true;
             startPolling();
         } catch (e: unknown) {
-            error = e instanceof Error ? e.message : String(e);
+            const { getErrorMessage } = await import('$lib/design-system/utils/errors');
+            error = getErrorMessage(e);
         } finally {
             loading = false;
         }

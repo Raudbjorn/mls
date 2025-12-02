@@ -326,7 +326,56 @@ export function prefetch(urls: string[]) {
 }
 
 /**
- * Memoization decorator
+ * Memoization decorator for expensive function calls
+ *
+ * Creates a memoized version of a function that caches results based on arguments.
+ * Uses a nested Map/WeakMap structure for efficient multi-argument caching:
+ * - WeakMap for object arguments (allows garbage collection)
+ * - Map for primitive arguments (stored by value)
+ *
+ * @template T - The function type to memoize
+ * @param fn - The function to memoize
+ * @returns A memoized version of the function
+ *
+ * @remarks
+ * Cache Structure:
+ * - Each argument creates a nested cache level
+ * - Object arguments use WeakMap (GC-friendly)
+ * - Primitive arguments use Map (persistent)
+ * - Final result stored with a symbol key
+ *
+ * Memory Considerations:
+ * - Object arguments are weakly referenced from their cache level
+ * - Cache chain persists if any primitive arguments are in the path
+ * - Consider clearing cache manually for long-running applications
+ *
+ * Limitations:
+ * - Arguments are compared by reference (objects) or strict equality (primitives)
+ * - Functions with non-deterministic behavior should not be memoized
+ * - Circular object references are not handled specially
+ *
+ * @example
+ * ```typescript
+ * const expensiveCalculation = memoize((a: number, b: number) => {
+ *   console.log('Computing...');
+ *   return a + b;
+ * });
+ *
+ * expensiveCalculation(1, 2); // Logs "Computing..." and returns 3
+ * expensiveCalculation(1, 2); // Returns 3 from cache (no log)
+ * ```
+ *
+ * @example
+ * ```typescript
+ * const processData = memoize((data: DataObject) => {
+ *   // Expensive processing...
+ *   return transformed;
+ * });
+ *
+ * const obj = { value: 42 };
+ * processData(obj); // Computes result
+ * processData(obj); // Returns cached result
+ * ```
  */
 // Helper type: recursively build nested cache structure for argument types
 type MemoizeCache<Args extends any[], R> =

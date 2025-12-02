@@ -26,7 +26,8 @@
             recentBackups = response.results;
             error = null;
         } catch (e: unknown) {
-            error = e instanceof Error ? e.message : String(e);
+            const { getErrorMessage } = await import('$lib/design-system/utils/errors');
+            error = getErrorMessage(e);
         } finally {
             loading = false;
         }
@@ -45,7 +46,8 @@
             await taskService.submitTask(taskPromise);
             await fetchRecentBackups();
         } catch (e: unknown) {
-            error = e instanceof Error ? e.message : String(e);
+            const { getErrorMessage } = await import('$lib/design-system/utils/errors');
+            error = getErrorMessage(e);
         } finally {
             loading = false;
         }
@@ -79,7 +81,9 @@
     }
 
     function getTypeColor(type: string) {
-        return type === 'dumpCreation' ? '#3949ab' : '#00897b';
+        return type === 'dumpCreation'
+            ? 'var(--mls-task-color-dump, #3949ab)'
+            : 'var(--mls-task-color-snapshot, #00897b)';
     }
 </script>
 
