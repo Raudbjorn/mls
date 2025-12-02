@@ -93,14 +93,14 @@
         <div class="actions">
             <Button
                 variant="primary"
-                on:click={createDump}
+                onclick={createDump}
                 disabled={loading}
             >
                 Create Dump
             </Button>
             <Button
                 variant="success"
-                on:click={createSnapshot}
+                onclick={createSnapshot}
                 disabled={loading}
             >
                 Create Snapshot
