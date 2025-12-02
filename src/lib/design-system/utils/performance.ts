@@ -377,43 +377,69 @@ export function prefetch(urls: string[]) {
  * processData(obj); // Returns cached result
  * ```
  */
-// Helper type: recursively build nested cache structure for argument types
-type MemoizeCache<Args extends any[], R> =
-  Args extends [infer First, ...infer Rest]
-    ? First extends object
-      ? WeakMap<First, MemoizeCache<Rest, R>>
-      : Map<First, MemoizeCache<Rest, R>>
-    : Map<symbol, R>;
+/**
+ * Memoize a function using a single Map for primitive arguments and a WeakMap for object arguments.
+ * - If all arguments are primitives, uses a Map with a serialized key.
+ * - If any argument is an object, uses a WeakMap for the first object argument,
+ *   and a Map for the rest of the arguments (serialized).
+ *
+ * Example cache structure:
+ *   - All primitives: Map<string, R>
+ *   - First object: WeakMap<object, Map<string, R>>
+ */
+
+// Helper to serialize arguments for use as a cache key
+function serializeArgs(args: any[]): string {
+  return args
+    .map(arg => {
+      if (arg === null) return 'null';
+      if (typeof arg === 'object' || typeof arg === 'function') return '';
+      return JSON.stringify(arg);
+    })
+    .join('|');
+}
 
 export function memoize<T extends (...args: any[]) => any>(fn: T): T {
-  // Use nested Map/WeakMap for argument-based caching
-  const cacheRoot: MemoizeCache<Parameters<T>, ReturnType<T>> = new Map();
-  const RESULT_KEY = Symbol('memoizeResult');
+  // If all arguments are primitives, use Map<string, R>
+  // If any argument is an object, use WeakMap<object, Map<string, R>>
+  const primitiveCache = new Map<string, ReturnType<T>>();
+  const objectCache = new WeakMap<object, Map<string, ReturnType<T>>>();
 
   return function (this: any, ...args: Parameters<T>) {
-    let cache: MemoizeCache<any, ReturnType<T>> = cacheRoot;
+    // Find the first object argument, if any
+    let firstObjIdx = -1;
     for (let i = 0; i < args.length; i++) {
-      const arg = args[i];
-      const isObject = arg !== null && (typeof arg === 'object' || typeof arg === 'function');
-      let nextCache;
-      if (isObject) {
-        if (!(cache as WeakMap<any, any>).has(arg)) {
-          (cache as WeakMap<any, any>).set(arg, new WeakMap());
-        }
-        nextCache = (cache as WeakMap<any, any>).get(arg);
-      } else {
-        if (!(cache as Map<any, any>).has(arg)) {
-          (cache as Map<any, any>).set(arg, new Map());
-        }
-        nextCache = (cache as Map<any, any>).get(arg);
+      if (args[i] !== null && (typeof args[i] === 'object' || typeof args[i] === 'function')) {
+        firstObjIdx = i;
+        break;
       }
-      cache = nextCache;
     }
-    if ((cache as Map<symbol, ReturnType<T>>).has(RESULT_KEY)) {
-      return (cache as Map<symbol, ReturnType<T>>).get(RESULT_KEY);
+
+    if (firstObjIdx === -1) {
+      // All primitives: use primitiveCache
+      const key = serializeArgs(args);
+      if (primitiveCache.has(key)) {
+        return primitiveCache.get(key);
+      }
+      const result = fn.apply(this, args);
+      primitiveCache.set(key, result);
+      return result;
+    } else {
+      // At least one object: use objectCache
+      const obj = args[firstObjIdx];
+      let map = objectCache.get(obj);
+      if (!map) {
+        map = new Map<string, ReturnType<T>>();
+        objectCache.set(obj, map);
+      }
+      // Serialize the rest of the arguments (excluding the object)
+      const key = serializeArgs(args.slice(0, firstObjIdx).concat(args.slice(firstObjIdx + 1)));
+      if (map.has(key)) {
+        return map.get(key);
+      }
+      const result = fn.apply(this, args);
+      map.set(key, result);
+      return result;
     }
-    const result = fn.apply(this, args);
-    (cache as Map<symbol, ReturnType<T>>).set(RESULT_KEY, result);
-    return result;
   } as T;
 }
