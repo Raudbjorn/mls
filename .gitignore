@@ -83,3 +83,6 @@ yarn-error.log*
 *.bak
 *.backup
 .history/
+*storybook.log
+storybook-static
+coderabbit-review-output.txt
