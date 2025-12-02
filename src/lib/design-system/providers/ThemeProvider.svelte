@@ -106,21 +106,12 @@
       systemTheme = e.matches ? 'dark' : 'light';
     };
 
-    // Modern browsers
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleThemeChange);
-    } else {
-      // Legacy browsers
-      mediaQuery.addListener(handleThemeChange);
-    }
+    // Listen for system theme changes (modern browsers only)
+    mediaQuery.addEventListener('change', handleThemeChange);
 
     // Cleanup
     return () => {
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener('change', handleThemeChange);
-      } else {
-        mediaQuery.removeListener(handleThemeChange);
-      }
+      mediaQuery.removeEventListener('change', handleThemeChange);
 
       // Optionally remove injected styles
       if (styleElement && styleElement.parentNode) {
