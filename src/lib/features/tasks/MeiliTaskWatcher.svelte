@@ -4,7 +4,7 @@
 
     const taskService = getContext<TaskService>('taskService');
     if (!taskService) {
-        throw new Error('MeiliTaskWatcher must be used within a MeiliProvider context.');
+        throw new Error('MeiliTaskWatcher requires taskService context. Ensure the component is wrapped with a provider that sets taskService context.');
     }
     
     // Derived state for active tasks
