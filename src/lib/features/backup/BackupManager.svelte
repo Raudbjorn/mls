@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, getContext } from 'svelte';
-    import type { MeiliContext, MeiliTask } from '$lib/meili/types/meilisearch';
+    import type { MeiliContext, MeiliTask } from '../../meili/types/meilisearch';
     import Card from '$lib/design-system/atoms/Card.svelte';
     import Button from '$lib/design-system/atoms/Button.svelte';
     import Badge from '$lib/design-system/atoms/Badge.svelte';
