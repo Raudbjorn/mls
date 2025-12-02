@@ -8,7 +8,7 @@
     let initError = $state<string | null>(null);
 
     if (!meiliContext) {
-        initError = 'SystemHealth must be used within a MeiliProvider';
+        initError = 'SystemHealth requires MeiliProvider context. Wrap this component with <MeiliProvider> to provide the required MeiliSearch client.';
     }
 
     let client = $derived(meiliContext?.client);
