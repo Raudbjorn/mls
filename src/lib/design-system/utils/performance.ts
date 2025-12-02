@@ -329,17 +329,34 @@ export function prefetch(urls: string[]) {
  * Memoization decorator
  */
 export function memoize<T extends (...args: any[]) => any>(fn: T): T {
-  const cache = new Map();
+  // Use nested Map/WeakMap for argument-based caching
+  const cacheRoot = new Map<any, any>();
+  const RESULT_KEY = Symbol('memoizeResult');
 
   return function (this: any, ...args: Parameters<T>) {
-    const key = JSON.stringify(args);
-
-    if (cache.has(key)) {
-      return cache.get(key);
+    let cache = cacheRoot;
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
+      const isObject = arg !== null && (typeof arg === 'object' || typeof arg === 'function');
+      let nextCache;
+      if (isObject) {
+        if (!cache.has(arg)) {
+          cache.set(arg, new WeakMap());
+        }
+        nextCache = cache.get(arg);
+      } else {
+        if (!cache.has(arg)) {
+          cache.set(arg, new Map());
+        }
+        nextCache = cache.get(arg);
+      }
+      cache = nextCache;
     }
-
+    if (cache.has(RESULT_KEY)) {
+      return cache.get(RESULT_KEY);
+    }
     const result = fn.apply(this, args);
-    cache.set(key, result);
+    cache.set(RESULT_KEY, result);
     return result;
   } as T;
 }
