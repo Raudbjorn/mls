@@ -1,67 +1,87 @@
-# MLS (MeiliSearch Library for Svelte) Project Context
+# GEMINI.md - Context & Usage Guide
 
 ## Project Overview
-**MLS** is a comprehensive Svelte/SvelteKit component library designed for managing and interacting with MeiliSearch instances. It provides a suite of components for search administration, monitoring, and advanced features like hybrid search and vector index configuration.
 
-### Core Technologies
-*   **Framework:** Svelte 5 (Runes) & SvelteKit (Packaging)
-*   **Build Tool:** Vite
-*   **Language:** TypeScript
-*   **Search Engine:** MeiliSearch
-*   **Testing:** Vitest (Unit/Contract/Property), Playwright (E2E)
-*   **Documentation:** Storybook
+**MLS (MeiliSearch Library for Svelte)** is a comprehensive Svelte 5+ component library and toolkit designed for managing, monitoring, and interacting with Meilisearch instances.
+
+- **Type:** Svelte/SvelteKit Component Library
+- **Purpose:** Provide atomic UI components, feature-rich modules, and domain services for Meilisearch integration.
+- **Key Stack:** Svelte 5 (Runes), TypeScript, Vite, Meilisearch, Storybook.
 
 ## Architecture
-The project follows a hybrid architecture combining **Atomic Design** for UI and **Domain-Driven Design** for logic.
 
-### Directory Structure (`src/lib/`)
-1.  **Design System (`design-system/`)**: Pure UI components.
-    *   `atoms/`: Basic building blocks (Button, Input).
-    *   `molecules/`: Simple combinations (SearchInput, ConfirmDialog).
-    *   `organisms/`: Complex sections (TaskTable).
-    *   `templates/`: Page layouts (AdminShell).
-2.  **Features (`features/`)**: Domain-specific, self-contained modules.
-    *   Examples: `backup/`, `tasks/`, `settings/`.
-    *   Each feature combines UI components with business logic.
-3.  **Domain Layer (`meili/`)**: Core business logic, agnostic of UI.
-    *   `services/`: Business logic classes (TaskService).
-    *   `utils/`: Helper functions.
-    *   `types/`: TypeScript definitions.
-4.  **Golden Paths (`golden-paths/`)**: Pre-configured, "zero-config" components like `AdminConsole`.
+The project adheres to **Atomic Design** principles combined with **Domain-Driven Design (DDD)**.
 
-## Development & Workflow
+### 1. Directory Structure (`src/lib/`)
+
+- **`design-system/`**: Pure UI components, strictly presentational.
+  - `atoms/`: Basic elements (Button, Input, Badge).
+  - `molecules/`: Simple compositions (SearchInput, ConfirmDialog).
+  - `organisms/`: Complex sections (TaskTable, ApiKeyTable).
+  - `templates/`: Page layouts (AdminShell).
+- **`features/`**: Self-contained feature modules connecting UI to logic.
+  - Examples: `backup`, `tasks`, `settings`, `security`.
+- **`meili/`**: Domain layer, framework-agnostic business logic.
+  - `services/`: `TaskService`, `BatchService`, `TypedIndex`.
+  - `utils/`: API clients, token generation.
+  - `types/`: TypeScript definitions.
+- **`golden-paths/`**: "Zero-config" components for instant usage (e.g., `AdminConsole`).
+
+### 2. Key Concepts
+
+- **Svelte 5 Runes:** The project explicitly uses Svelte 5 features (e.g., `$props()`, `$state`).
+- **Co-location:** Tests (`*.test.ts`) and stories (`*.stories.svelte`) are located next to their source files.
+- **Types:** Extensive use of TypeScript interfaces for strict typing of Meilisearch entities.
+
+## Building & Development
 
 ### Key Commands
-*   **Install Dependencies:** `npm install`
-*   **Start Dev Server:** `npm run dev` (Vite)
-*   **Build Library:** `npm run build` (Vite + SvelteKit package)
-*   **Run Tests:**
-    *   Unit: `npm run test:unit` (Vitest)
-    *   Watch: `npm run test:unit:watch`
-    *   All: `npm run test`
-*   **Type Check:** `npm run check`
-*   **Lint & Format:** `npm run lint` / `npm run format`
-*   **Storybook:** `npm run storybook`
+
+- **Install Dependencies:** `npm install`
+- **Dev Server:** `npm run dev` (Vite)
+- **Build Library:** `npm run build` (Svelte-package)
+- **Type Check:** `npm run check` (Svelte-check)
+- **Unit Tests:** `npm run test:unit` (Vitest)
+- **Linting:** `npm run lint` (ESLint)
+- **Formatting:** `npm run format` (Prettier)
+- **Storybook:** `npm run storybook` (Component workbench)
 
 ### Testing Strategy
-*   **Unit Tests (`*.test.ts`):** Co-located with components. Test in isolation.
-*   **Contract Tests (`*.contract.test.ts`):** For feature components to ensure API stability.
-*   **Property Tests (`*.property.test.ts`):** For domain logic using `fast-check`.
-*   **Integration Tests (`tests/integration/`):** Validate public API surface.
-*   **E2E Tests (`tests/e2e/`):** Full user flows using Playwright.
 
-## Coding Conventions
-*   **Style:** Prettier & ESLint enforced.
-*   **Svelte Version:** Svelte 5 with Runes syntax (`$props()`, `$state()`, etc.).
-*   **TypeScript:** Strict typing required for all exports and internal logic.
-*   **CSS:** Use CSS variables (Design Tokens) for theming (e.g., `var(--mls-space-4)`).
-*   **Commits:** Conventional Commits format (`type(scope): description`).
-    *   Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
+- **Unit Tests (`*.test.ts`):** Component isolation tests.
+- **Contract Tests (`*.contract.test.ts`):** Ensure feature interface stability.
+- **Property Tests (`*.property.test.ts`):** Verify domain invariants (using fast-check).
+- **Integration Tests (`tests/integration/`):** Test public API and cross-feature flows.
+- **E2E Tests (`tests/e2e/`):** Full browser flows using Playwright.
 
-## Key Files
-*   `src/lib/index.ts`: Public API entry point.
-*   `package.json`: Dependencies and scripts.
-*   `vite.config.ts`: Build configuration.
-*   `svelte.config.js`: SvelteKit configuration.
-*   `ARCHITECTURE.md`: Detailed architectural guidelines.
-*   `CONTRIBUTING.md`: Contribution guidelines and setup.
+## Development Conventions
+
+1.  **Component Creation:**
+    - Place in `src/lib/design-system/[type]` or `src/lib/features/[feature]`.
+    - Use Svelte 5 syntax (`<script lang="ts">` with runes).
+    - Create a co-located `*.test.ts` file.
+    - Create a co-located `*.stories.svelte` file for UI components.
+    - Export from the relevant `index.ts` barrel file.
+2.  **Styling:**
+    - Use CSS variables (Design Tokens) defined in `src/lib/design-system/tokens`.
+    - Support Light/Dark modes via these variables.
+    - Use BEM-like naming for complex internal classes if necessary, but scoped styles are preferred.
+3.  **State Management:**
+    - Use Svelte's reactivity system (Runes) primarily.
+    - Context API is used for providing MeiliSearch client configuration (`MeiliProvider`).
+
+## Public API
+
+The `src/lib/index.ts` file is the source of truth for exports. It maintains:
+
+- **Backward Compatible Exports:** Flat exports of components/services.
+- **Atomic Structure Exports:** `designSystem`, `features`, `meili`.
+- **Golden Paths:** `QuickStart`, `AdminConsole`.
+
+## Dependencies
+
+- `svelte`: ^5.0.0
+- `meilisearch`: ^0.37.0 (Peer dependency ^0.35.0)
+- `vite`: ^5.0.3
+- `vitest`: ^2.0.0
+- `storybook`: ^10.1.2

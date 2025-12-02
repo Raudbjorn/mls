@@ -96,5 +96,9 @@
   "homepage": "https://github.com/Raudbjorn/mls#readme",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@types/dompurify": "^3.0.5",
+    "dompurify": "^3.3.0"
   }
 }
