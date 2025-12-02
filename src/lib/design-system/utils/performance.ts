@@ -378,11 +378,13 @@ export function prefetch(urls: string[]) {
  * ```
  */
 /**
- * Memoize a function using a single Map for primitive arguments and a WeakMap for object arguments.
- * - If all arguments are primitives, uses a Map with a serialized key.
- * - If any argument is an object, uses a WeakMap for the first object argument,
- *   and a Map for the rest of the arguments (serialized).
- *
+type MemoizeCache<Args extends any[], R> =
+  // Recursive case: if there are still arguments, create nested cache for remaining arguments
+  Args extends [infer First, ...infer Rest]
+    ? First extends object
+      ? WeakMap<First, MemoizeCache<Rest, R>>
+      : Map<First, MemoizeCache<Rest, R>>
+    // Base case: no more arguments, store result with symbol key
  * Example cache structure:
  *   - All primitives: Map<string, R>
  *   - First object: WeakMap<object, Map<string, R>>
