@@ -240,7 +240,8 @@ export class BatchService {
         } catch (finalError) {
           errors.push({ batchIndex: batchCount, error: finalError as Error });
         }
-        batch = []; // Prevent double submission in finally block
+        // Clear batch to prevent the finally block (line 247) from re-submitting these documents
+        batch = [];
       }
 
       throw streamError;

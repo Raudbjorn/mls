@@ -37,6 +37,11 @@
   let systemTheme = $state<'light' | 'dark'>('light');
   let styleElement: HTMLStyleElement | null = null;
 
+  // Type guard for validating theme values
+  function isValidTheme(value: string): value is 'light' | 'dark' | 'auto' {
+    return ['light', 'dark', 'auto'].includes(value);
+  }
+
   const setTheme = (newTheme: 'light' | 'dark' | 'auto') => {
     themeStore.set(newTheme);
     if (typeof document !== 'undefined') {
@@ -81,8 +86,8 @@
     // Check for saved preference
     try {
       const savedTheme = localStorage.getItem('mls-theme');
-      if (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) {
-        theme = savedTheme as 'light' | 'dark' | 'auto';
+      if (savedTheme && isValidTheme(savedTheme)) {
+        theme = savedTheme;
         themeStore.set(theme);
       }
     } catch (e) {
