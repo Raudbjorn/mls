@@ -85,7 +85,7 @@
   }
 
   function parseHighlights(value: string | undefined) {
-    if (typeof value !== 'string') return [{ text: String(value), highlight: false }];
+    if (typeof value !== 'string') return [];
     const parts = value.split(/<\/?em>/);
     const result: {text: string, highlight: boolean}[] = [];
     let isHighlighted = value.startsWith('<em>');
