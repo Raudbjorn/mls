@@ -54,13 +54,17 @@
   setContext('meili', { client });
 
   // Navigation based on enabled features
+  type NavigationItem = { id: string; label: string; icon: string };
+  function isNavigationItem(item: any): item is NavigationItem {
+    return !!item && typeof item.id === 'string' && typeof item.label === 'string' && typeof item.icon === 'string';
+  }
   $derived navigationItems = [
     features.health && { id: 'health', label: 'Health', icon: 'heart' },
     features.indexes && { id: 'indexes', label: 'Indexes', icon: 'database' },
     features.tasks && { id: 'tasks', label: 'Tasks', icon: 'clock' },
     features.keys && { id: 'keys', label: 'API Keys', icon: 'key' },
     features.backup && { id: 'backup', label: 'Backup', icon: 'download' },
-  ].filter(Boolean);
+  ].filter(isNavigationItem);
 
   let activeSection = $state(navigationItems[0]?.id || 'health');
 </script>
