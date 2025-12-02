@@ -3,17 +3,20 @@
     import type { TaskService } from '../../meili/services/TaskService';
 
     const taskService = getContext<TaskService>('taskService');
+    
+    let initError = $state<string | null>(null);
+    
     if (!taskService) {
-        throw new Error('MeiliTaskWatcher requires taskService context. Ensure the component is wrapped with a provider that sets taskService context.');
+        initError = 'MeiliTaskWatcher requires taskService context. Ensure the component is wrapped with a provider that sets taskService context.';
     }
     
     // Derived state for active tasks
     let activeTasks = $derived(
-        taskService.getAllTasks().filter(t => ['enqueued', 'processing'].includes(t.status))
+        taskService ? taskService.getAllTasks().filter(t => ['enqueued', 'processing'].includes(t.status)) : []
     );
 
     let recentFailures = $derived(
-        taskService.getAllTasks().filter(t => t.status === 'failed').slice(0, 3)
+        taskService ? taskService.getAllTasks().filter(t => t.status === 'failed').slice(0, 3) : []
     );
 </script>
 

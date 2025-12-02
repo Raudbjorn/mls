@@ -4,11 +4,16 @@
     import { createApiClient } from '../../meili/utils/api';
 
     const meiliContext = getContext<MeiliContext>('meili');
+    
+    let initError = $state<string | null>(null);
+
     if (!meiliContext) {
-        throw new Error('SystemHealth must be used within a MeiliProvider');
+        initError = 'SystemHealth must be used within a MeiliProvider';
     }
-    const { client, hasAdminRights } = meiliContext;
-    const api = createApiClient(client);
+
+    let client = $derived(meiliContext?.client);
+    let hasAdminRights = $derived(meiliContext?.hasAdminRights ?? false);
+    let api = $derived(client ? createApiClient(client) : null);
 
     let loading = $state(true);
     let error = $state<string | null>(null);
@@ -28,7 +33,8 @@
             return;
         }
         try {
-            const features = await client.getExperimentalFeatures();
+            if (!client) return;
+            const features = await (client as any).getExperimentalFeatures();
             metricsEnabled = !!features.metrics;
             if (metricsEnabled) {
                 startPolling();
@@ -42,8 +48,9 @@
 
     async function enableMetrics() {
         loading = true;
+        if (!client) return;
         try {
-            await client.updateExperimentalFeatures({ metrics: true });
+            await (client as any).updateExperimentalFeatures({ metrics: true });
             metricsEnabled = true;
             startPolling();
         } catch (e: unknown) {
@@ -71,6 +78,7 @@
             // We use fetch directly to handle text response if SDK doesn't support it easily
             // or use client.httpRequest if we can force text.
             // Let's use fetch for control over headers and response type.
+            if (!api) return;
             const config = api.getConfig();
             const response = await fetch(`${config.host}/metrics`, {
                 headers: {
