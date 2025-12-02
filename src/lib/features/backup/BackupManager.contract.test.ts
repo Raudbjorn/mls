@@ -1,9 +1,9 @@
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/svelte';
 import BackupManager from './BackupManager.svelte';
 
 describe('BackupManager Contract Tests', () => {
-  test('renders with minimal required props', () => {
+  it('renders with minimal required props', () => {
     const { container, getByText } = render(BackupManager);
 
     // Should render the backup UI shell
@@ -13,7 +13,7 @@ describe('BackupManager Contract Tests', () => {
     expect(getByText(/backup/i)).toBeTruthy();
   });
 
-  test('provides create backup action', () => {
+  it('provides create backup action', () => {
     const { getByRole } = render(BackupManager);
 
     // Should have a create backup button
@@ -21,7 +21,7 @@ describe('BackupManager Contract Tests', () => {
     expect(createButton).toBeTruthy();
   });
 
-  test('displays backup list area', () => {
+  it('displays backup list area', () => {
     const { container } = render(BackupManager);
 
     // Should have area for listing backups
@@ -29,10 +29,10 @@ describe('BackupManager Contract Tests', () => {
     expect(listArea).toBeTruthy();
   });
 
-  test('integrates with MeiliContext when available', () => {
+  it('integrates with MeiliContext when available', () => {
     // Mock the context
     const mockClient = {
-      createSnapshot: vi.fn().mockResolvedValue({ taskUid: 123 })
+      createSnapshot: vi.fn().mockResolvedValue({ taskUid: 123 }),
     };
 
     const contextMap = new Map();

@@ -1,9 +1,9 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, it, expect } from 'vitest';
 import * as MLS from '../../src/lib';
 
 describe('Public API Contract', () => {
   describe('Top-level feature exports', () => {
-    test('exports all main feature components', () => {
+    it('exports all main feature components', () => {
       // Core components
       expect(MLS.MeiliProvider).toBeDefined();
       expect(MLS.MeiliSettings).toBeDefined();
@@ -112,14 +112,9 @@ describe('Public API Contract', () => {
   describe('Component shape validation', () => {
     test('Svelte components have expected shape', () => {
       // Svelte components should be objects with specific structure
-      const components = [
-        MLS.MeiliProvider,
-        MLS.BackupManager,
-        MLS.KeyManager,
-        MLS.SystemHealth
-      ];
+      const components = [MLS.MeiliProvider, MLS.BackupManager, MLS.KeyManager, MLS.SystemHealth];
 
-      components.forEach(component => {
+      components.forEach((component) => {
         expect(component).toBeDefined();
         expect(typeof component).toBe('object');
         // Svelte components have a default export or are the component itself
@@ -158,14 +153,9 @@ describe('Public API Contract', () => {
   describe('No unexpected exports', () => {
     test('does not export internal implementation details', () => {
       // These should NOT be exported at top level
-      const unexpectedExports = [
-        'mockClient',
-        'testHelpers',
-        '_internal',
-        'private'
-      ];
+      const unexpectedExports = ['mockClient', 'testHelpers', '_internal', 'private'];
 
-      unexpectedExports.forEach(name => {
+      unexpectedExports.forEach((name) => {
         expect((MLS as any)[name]).toBeUndefined();
       });
     });
