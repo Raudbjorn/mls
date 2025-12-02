@@ -210,24 +210,25 @@ export function isVisibleToScreenReader(element: HTMLElement): boolean {
 }
 
 // Counter for fallback ID generation
-let __uniqueIdCounter = 0;
-
 /**
  * Generate unique ID for accessibility
+ * Uses crypto.randomUUID if available, otherwise falls back to a counter-based approach.
  */
-export function generateUniqueId(prefix = 'mls'): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    // Use crypto.randomUUID for better uniqueness
-    const uuid = crypto.randomUUID();
-    // Take first 8 characters of UUID for shorter IDs
-    return `${prefix}-${uuid.substring(0, 8)}`;
-  } else {
-    // Fallback to counter-based approach with added randomness for better uniqueness
-    __uniqueIdCounter += 1;
-    const randomPart = Math.floor(Math.random() * 1e8).toString(16);
-    return `${prefix}-${Date.now()}-${__uniqueIdCounter}-${randomPart}`;
-  }
-}
+export const generateUniqueId = (() => {
+  let uniqueIdCounter = 0;
+  return function generateUniqueId(prefix = 'mls'): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      // Use crypto.randomUUID for better uniqueness
+      const uuid = crypto.randomUUID();
+      // Take first 8 characters of UUID for shorter IDs
+      return `${prefix}-${uuid.substring(0, 8)}`;
+    } else {
+      // Fallback to counter-based approach
+      uniqueIdCounter += 1;
+      return `${prefix}-${Date.now()}-${uniqueIdCounter}`;
+    }
+  };
+})();
 
 /**
  * Handle roving tabindex for list navigation
